@@ -1,0 +1,23 @@
+header
+{
+	width: 100%;
+	background-color: $header-bgColor;
+	.header-content
+	{	
+		padding: 10px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		h1
+		{
+		}
+		.flags-container
+		{
+			height: 100%;
+			a
+			{
+				margin-left: 10px;
+			}
+		}
+	}
+}

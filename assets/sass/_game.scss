@@ -1,0 +1,43 @@
+.game-container
+{
+	height: 100%;
+	display: flex;
+}
+.game-canvas
+{
+	border: 1px solid green;
+	width: 100%;
+	height: 100%;
+}
+.game-board
+{
+	padding: 10px;
+	flex: 1;
+	min-width: 450px;
+	background-color: $grass-bgColor;
+}
+.code-board
+{
+	flex: 2;
+	min-width: 450px;
+	display: flex;
+	flex-direction: column;
+	background-color: $blackBoard-bgColor;
+	.code-container
+	{
+		padding: 10px;
+		flex: 1;
+		color: white;
+	}
+	.buttons-container
+	{
+		width: 100%;
+		height: 160px;
+		background-color: pink;
+		div
+		{
+			padding: 10px;
+			height: 50%;
+		}
+	}
+}

@@ -1,0 +1,89 @@
+html, body, header, nav, footer, section, div, span, h1, h2, h3, h4, h5, h6, p, a, blockquote, cite, img, ol, ul, li, form, fieldset, legend, label, input, button {
+  margin: 0;
+  border: none;
+  padding: 0;
+  box-sizing: border-box; }
+
+html {
+  height: 100%;
+  width: 100%;
+  font-size: 18px; }
+
+body {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column; }
+
+#main {
+  flex: 1; }
+
+.maxWidth-container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1920px;
+  width: 100%; }
+
+.centerXY {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; }
+
+header {
+  width: 100%;
+  background-color: #75858c; }
+  header .header-content {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; }
+    header .header-content .flags-container {
+      height: 100%; }
+      header .header-content .flags-container a {
+        margin-left: 10px; }
+
+.flag {
+  margin: 25px; }
+  .flag img {
+    border: 2px solid grey; }
+
+.game-container {
+  height: 100%;
+  display: flex; }
+
+.game-canvas {
+  border: 1px solid green;
+  width: 100%;
+  height: 100%; }
+
+.game-board {
+  padding: 10px;
+  flex: 1;
+  min-width: 450px;
+  background-color: #77985d; }
+
+.code-board {
+  flex: 2;
+  min-width: 450px;
+  display: flex;
+  flex-direction: column;
+  background-color: #2c2e35; }
+  .code-board .code-container {
+    padding: 10px;
+    flex: 1;
+    color: white; }
+  .code-board .buttons-container {
+    width: 100%;
+    height: 160px;
+    background-color: pink; }
+    .code-board .buttons-container div {
+      padding: 10px;
+      height: 50%; }
+
+@media screen and (max-width: 900px) {
+  .game-container {
+    flex-direction: column; } }
+
+/*# sourceMappingURL=style.css.map */
