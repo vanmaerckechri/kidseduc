@@ -8,10 +8,10 @@
 		{
 		?>
 			<div class="flags-container">
-				<a href="index.php?action=game&lang=en">
+				<a href="<?= $EnglishLink ?>">
 					<img src="./assets/img/flag-en_low.png" alt="english flag">
 				</a>
-				<a href="index.php?action=game&lang=jp">
+				<a href="<?= $JapanLink ?>">
 					<img src="./assets/img/flag-jp_low.png" alt="japan flag">
 				</a>
 			</div>

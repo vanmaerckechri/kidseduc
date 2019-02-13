@@ -22,12 +22,12 @@
 	min-width: 450px;
 	display: flex;
 	flex-direction: column;
-	background-color: $blackBoard-bgColor;
 	.code-container
 	{
 		padding: 10px;
 		flex: 1;
 		color: white;
+		background-color: $blackBoard-bgColor;
 	}
 	.buttons-container
 	{
@@ -39,5 +39,15 @@
 			padding: 10px;
 			height: 50%;
 		}
+	}
+}
+.run-button
+{
+	border: 1px solid black;
+	padding: 10px;
+	font-size: 1rem;
+	&:hover
+	{
+		cursor: pointer;
 	}
 }

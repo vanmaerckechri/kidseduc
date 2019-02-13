@@ -8,18 +8,15 @@ ob_start();
 			<canvas id="game-canvas" class="game-canvas"></canvas>
 		</div>
 		<div class="code-board">
-			<div class="code-container">
-				<?= $pageLang == "en" ?
-					"<p>Code...</p>" : 
-					"<p>コード...</p>"
-				?>
-			</div>
+			<textarea id="code-container" class="code-container"></textarea>	
 			<div class="buttons-container">
 				<div class="buttons-settings">
-					<?= $pageLang == "en" ?
-						"<p>Run and settings buttons...</p>" : 
-						"<p>実行ボタンと設定ボタン...</p>"
-					?>
+					<button id="run-button" class="run-button">
+						<?= $pageLang == "en" ?
+							"Run" : 
+							"走る"
+						?>
+					</button>
 				</div>
 				<div class="buttons-codeShortcuts">
 					<?= $pageLang == "en" ?
@@ -37,7 +34,6 @@ $mainContent = ob_get_clean();
 
 ob_start();
 ?>
-<script src="./assets/js/tools.js"></script>
 <script src="./assets/js/game.js"></script>
 <?php
 $javascriptContent = ob_get_clean();
