@@ -32,13 +32,14 @@ document.addEventListener("DOMContentLoaded", function(event)
 
 	class GameBoard
 	{
-		constructor(canvas, rowsLength, colsLength)
+		constructor(canvas, rowsLength, colsLength, spriteSizeSource)
 		{
+			this.spriteSizeSrc = spriteSizeSource;
 			this.spriteSize = 0;
 
 			this.canvasPadding = 10;
 			this.canvas = canvas;
-			this.ctx = canvas.getContext("2d");
+			this.ctx = canvas.getContext('2d');
 			this.rowsLength = rowsLength;
 			this.colsLength = colsLength;
 
@@ -47,6 +48,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 			this.imgLoadedLength = this.imgSrcList.length;
 			this.playerImg;
 
+			this.playerAngle = 0;
 			this.playerImgRow = 0;
 			this.playerImgCol = 0;
 			this.playerPosRow = Math.floor(this.rowsLength / 2);
@@ -55,13 +57,38 @@ document.addEventListener("DOMContentLoaded", function(event)
 			this.init();
   		}
 
+  		rotateImg(img, sX, sY, sSize, dSize, rotateDeg)
+  		{
+  			let canvas = document.createElement('canvas');
+  			let ctx = canvas.getContext('2d');
+
+			canvas.width = Math.sqrt((dSize * dSize) + (dSize * dSize));
+			canvas.height = canvas.width;
+
+			let canvasHalfWidth = canvas.width / 2;
+			let canvasHalfHeight = canvas.height / 2;
+
+			ctx.translate(canvasHalfWidth, canvasHalfHeight);
+ 			ctx.rotate(rotateDeg * Math.PI / 180);
+ 			ctx.translate(- canvasHalfWidth, - canvasHalfHeight);
+
+			let dMiddle = (canvasHalfWidth) - (dSize / 2);
+  			ctx.drawImage(img, sX, sY, sSize, sSize, dMiddle, dMiddle, dSize, dSize);
+
+  			return canvas;
+  		}
+
   		drawPlayer()
   		{
-  			let imgSrcPosX = this.playerImgCol * this.spriteSize;
-  			let imgSrcPosY = this.playerImgRow * this.spriteSize;
-  			let posX = this.playerPosCol * this.spriteSize;
-  			let posY = this.playerPosRow * this.spriteSize;
-  			this.ctx.drawImage(this.playerImg, imgSrcPosX, imgSrcPosY, 64, 64, posX, posY, this.spriteSize, this.spriteSize);
+  			let imgSrcPosX = this.playerImgCol * this.spriteSizeSrc;
+  			let imgSrcPosY = this.playerImgRow * this.spriteSizeSrc;
+
+  			let imgRot = this.rotateImg(this.playerImg, imgSrcPosX, imgSrcPosY, this.spriteSizeSrc, this.spriteSize, this.playerAngle);
+
+  			let posX = (this.playerPosCol * this.spriteSize) + (this.spriteSize / 2) - (imgRot.width / 2);
+  			let posY = (this.playerPosRow * this.spriteSize) + (this.spriteSize / 2) - (imgRot.height / 2);;
+
+  			this.ctx.drawImage(imgRot, 0, 0, imgRot.width, imgRot.height, posX, posY, imgRot.width, imgRot.height);
   		}
 
   		drawBoard()
@@ -112,7 +139,38 @@ document.addEventListener("DOMContentLoaded", function(event)
 
   		playerMove(direction)
   		{
-  			console.log(direction);
+  			console.log('angle = ' + this.playerAngle);
+
+  			let hypo = 1;
+  			let triangleWidth = hypo * Math.sin(this.playerAngle * Math.PI / 180);
+  			let triangleHeight = -1 * (hypo * Math.cos(this.playerAngle * Math.PI / 180));
+
+  			triangleWidth = this.playerAngle == 0 || this.playerAngle == 180 ? 0 : triangleWidth;
+  			triangleHeight = this.playerAngle == 90 || this.playerAngle == 270 ? 0 : triangleHeight;
+
+  			console.log('x = ' + triangleWidth);
+  			console.log('y = ' + triangleHeight);
+
+  			this.drawBoard();
+  			this.drawPlayer();
+  		}
+
+  		playerRotate(direction)
+  		{
+  			if (typeof direction == "string")
+  			{
+  				this.playerAngle = direction == "rotateRight" ? this.playerAngle + 90 : this.playerAngle - 90;
+  				if (this.playerAngle == 360)
+  				{
+  					this.playerAngle = 0;
+  				}
+  				else if(this.playerAngle == -90)
+  				{
+  					this.playerAngle = 270;
+  				}
+  			}
+  			this.drawBoard();
+  			this.drawPlayer();
   		}
 
   		// TEMP ===>
@@ -120,19 +178,19 @@ document.addEventListener("DOMContentLoaded", function(event)
   		{
   			if (event.code == 'ArrowUp')
   			{
-  				this.playerMove('moveTop');
-  			}
-  			else if (event.code == 'ArrowRight')
-  			{
-				this.playerMove('moveRight');
+  				this.playerMove('moveFront');
   			}
   			else if (event.code == 'ArrowDown')
   			{
-				this.playerMove('moveBottom'); 				
+				this.playerMove('moveBack'); 				
+  			}
+  			else if (event.code == 'ArrowRight')
+  			{
+				this.playerRotate('rotateRight');
   			}
   			else if (event.code == 'ArrowLeft')
   			{
-				this.playerMove('moveLeft'); 				
+				this.playerRotate('rotateLeft'); 				
   			}
   		}
   		// <=== TEMP
@@ -174,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 		{
 			// init canvas
 			let canvas = document.getElementById('game-canvas');
-			let gameBoard = new GameBoard(canvas, 9, 9);
+			let gameBoard = new GameBoard(canvas, 9, 9, 64);
 			// init code system
 			CodeLines.init();
 		}
