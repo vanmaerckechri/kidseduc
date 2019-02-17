@@ -51,8 +51,8 @@ document.addEventListener("DOMContentLoaded", function(event)
 			this.playerAngle = 0;
 			this.playerImgRow = 0;
 			this.playerImgCol = 0;
-			this.playerPosRow = Math.floor(this.rowsLength / 2);
-			this.playerPosCol = Math.floor(this.colsLength / 2);
+			this.playerPosRow;
+			this.playerPosCol;
 
 			this.init();
   		}
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function(event)
   			let imgRot = this.rotateImg(this.playerImg, imgSrcPosX, imgSrcPosY, this.spriteSizeSrc, this.spriteSize, this.playerAngle);
 
   			let posX = (this.playerPosCol * this.spriteSize) + (this.spriteSize / 2) - (imgRot.width / 2);
-  			let posY = (this.playerPosRow * this.spriteSize) + (this.spriteSize / 2) - (imgRot.height / 2);;
+  			let posY = (this.playerPosRow * this.spriteSize) + (this.spriteSize / 2) - (imgRot.height / 2);
 
   			this.ctx.drawImage(imgRot, 0, 0, imgRot.width, imgRot.height, posX, posY, imgRot.width, imgRot.height);
   		}
@@ -108,39 +108,8 @@ document.addEventListener("DOMContentLoaded", function(event)
   			}
   		}
 
-  		updateCanvasSize()
-  		{
-  			// rest canvas container size
-  			this.canvas.width = 0;
-  			this.canvas.height = 0;
-  			
-  			let canvasContainerSize;
-  			let canvasContainerWidth = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
-  			let canvasContainerHeight = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
-
-  			// adapt to portrait or landscape
-  			if (canvasContainerHeight > canvasContainerWidth)
-  			{
-  			  	canvasContainerSize = canvasContainerWidth;
-  				this.spriteSize = Math.floor(canvasContainerSize / this.colsLength);	
-  			}
-  			else
-  			{
-	  			canvasContainerSize = canvasContainerHeight;
-	  			this.spriteSize = Math.floor(canvasContainerSize / this.rowsLength);
-  			}
-
-  			this.canvas.width = canvasContainerSize;
-  			this.canvas.height = canvasContainerSize;
-
-  			this.drawBoard();
-  			this.drawPlayer();
-  		}
-
   		playerMove(direction)
   		{
-  			console.log('angle = ' + this.playerAngle);
-
   			let hypo = 1;
   			let triangleWidth = hypo * Math.sin(this.playerAngle * Math.PI / 180);
   			let triangleHeight = -1 * (hypo * Math.cos(this.playerAngle * Math.PI / 180));
@@ -148,8 +117,8 @@ document.addEventListener("DOMContentLoaded", function(event)
   			triangleWidth = this.playerAngle == 0 || this.playerAngle == 180 ? 0 : triangleWidth;
   			triangleHeight = this.playerAngle == 90 || this.playerAngle == 270 ? 0 : triangleHeight;
 
-  			console.log('x = ' + triangleWidth);
-  			console.log('y = ' + triangleHeight);
+  			this.playerPosCol = direction == 'moveFront' ? this.playerPosCol + triangleWidth : this.playerPosCol - triangleWidth;
+  			this.playerPosRow = direction == 'moveFront' ? this.playerPosRow + triangleHeight : this.playerPosRow - triangleHeight;
 
   			this.drawBoard();
   			this.drawPlayer();
@@ -159,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function(event)
   		{
   			if (typeof direction == "string")
   			{
-  				this.playerAngle = direction == "rotateRight" ? this.playerAngle + 90 : this.playerAngle - 90;
+  				this.playerAngle = direction == "rotateRight" ? this.playerAngle + 10 : this.playerAngle - 10;
   				if (this.playerAngle == 360)
   				{
   					this.playerAngle = 0;
@@ -195,6 +164,46 @@ document.addEventListener("DOMContentLoaded", function(event)
   		}
   		// <=== TEMP
 
+  		updateCanvasSize()
+  		{
+  			this.initCanvas();
+
+  			this.drawBoard();
+  			this.drawPlayer();
+  		}
+
+  		initCanvasSize()
+  		{
+  			// rest canvas container size
+  			this.canvas.width = 0;
+  			this.canvas.height = 0;
+  			
+  			let canvasContainerSize;
+  			let canvasContainerWidth = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
+  			let canvasContainerHeight = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
+
+  			// adapt to portrait or landscape
+  			if (canvasContainerHeight > canvasContainerWidth)
+  			{
+  			  	canvasContainerSize = canvasContainerWidth;
+  				this.spriteSize = Math.floor(canvasContainerSize / this.colsLength);	
+  			}
+  			else
+  			{
+	  			canvasContainerSize = canvasContainerHeight;
+	  			this.spriteSize = Math.floor(canvasContainerSize / this.rowsLength);
+  			}
+
+  			this.canvas.width = canvasContainerSize;
+  			this.canvas.height = canvasContainerSize;
+  		}
+
+  		initPlayerPos()
+  		{
+  			this.playerPosRow = Math.floor(this.rowsLength / 2);
+			this.playerPosCol = Math.floor(this.colsLength / 2);
+  		}
+
   		init()
   		{
   			// preload images
@@ -210,7 +219,11 @@ document.addEventListener("DOMContentLoaded", function(event)
 	  				{
 			  			this.canvas.style.marginLeft = this.canvasPadding + "px";
 			  			this.canvas.style.marginTop = this.canvasPadding + "px";
-			  			this.updateCanvasSize();
+			  			this.initCanvasSize();
+			  			this.initPlayerPos();
+			  			
+						this.drawBoard();
+						this.drawPlayer();
 
 			  			window.addEventListener('resize', () => { this.updateCanvasSize(); }, false);
 
