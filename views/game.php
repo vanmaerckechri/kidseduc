@@ -5,7 +5,8 @@ ob_start();
 <div id="main">
 	<div class="game-container maxWidth-container">
 		<div class="game-board">
-			<canvas id="game-canvas" class="game-canvas"></canvas>
+			<canvas id="board-canvas" class="game-canvas"></canvas>
+			<canvas id="player-canvas" class="game-canvas"></canvas>
 		</div>
 		<div class="code-board">
 			<textarea id="code-container" class="code-container"></textarea>	
