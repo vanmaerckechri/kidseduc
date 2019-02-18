@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", function(event)
 	{
 		constructor()
 		{
+			this.status = 'ready';
+			this.animationTempo;
 
 			this.canvasPadding = 10;
 
@@ -160,8 +162,8 @@ document.addEventListener("DOMContentLoaded", function(event)
   			triangleWidth = this.playerAngle == 0 || this.playerAngle == 180 ? 0 : triangleWidth;
   			triangleHeight = this.playerAngle == 90 || this.playerAngle == 270 ? 0 : triangleHeight;
 
-  			this.playerPosCol = direction == 'moveFront' ? this.playerPosCol + triangleWidth : this.playerPosCol - triangleWidth;
-  			this.playerPosRow = direction == 'moveFront' ? this.playerPosRow + triangleHeight : this.playerPosRow - triangleHeight;
+  			this.playerPosCol = direction == 'playerMoveFront' ? this.playerPosCol + triangleWidth : this.playerPosCol - triangleWidth;
+  			this.playerPosRow = direction == 'playerMoveFront' ? this.playerPosRow + triangleHeight : this.playerPosRow - triangleHeight;
 
   			this.drawPlayer();
   		}
@@ -170,40 +172,57 @@ document.addEventListener("DOMContentLoaded", function(event)
   		{
   			if (typeof direction == "string")
   			{
-  				this.playerAngle = direction == "rotateRight" ? this.playerAngle + 10 : this.playerAngle - 10;
-  				if (this.playerAngle == 360)
-  				{
-  					this.playerAngle = 0;
-  				}
-  				else if(this.playerAngle == -90)
-  				{
-  					this.playerAngle = 270;
-  				}
+  				this.playerAngle = direction == "Right" ? this.playerAngle + 90 : this.playerAngle - 90;
   			}
+  			else
+  			{
+  				this.playerAngle = this.playerAngle + direction;
+  			}
+
+			if (this.playerAngle == (360 + direction))
+			{
+				this.playerAngle = direction;
+			}
+			else if(this.playerAngle == (-1 * direction))
+			{
+				this.playerAngle = 360 - direction;
+			}
+
   			this.drawPlayer();
   		}
 
-  		// TEMP ===>
-  		detectKey(that, event)
+  		translateAnimKeys(key)
   		{
-  			if (event.code == 'ArrowUp')
+  			if (key == "playerMoveFront" || key == "playerMoveBack")
   			{
-  				this.playerMove('moveFront');
+  				this.playerMove(key);
   			}
-  			else if (event.code == 'ArrowDown')
+  			else if (key.indexOf("playerRotate") !== -1)
   			{
-				this.playerMove('moveBack'); 				
-  			}
-  			else if (event.code == 'ArrowRight')
-  			{
-				this.playerRotate('rotateRight');
-  			}
-  			else if (event.code == 'ArrowLeft')
-  			{
-				this.playerRotate('rotateLeft'); 				
+  				key = key.replace("playerRotate", "");
+  				key = key.match(/\d+/g) != null ? parseInt(key, 10) : key;
+
+  				this.playerRotate(key);
   			}
   		}
-  		// <=== TEMP
+
+  		loadAnimation(sequence, time)
+  		{
+  			let that = this;
+  			this.animationTempo = setInterval(function()
+			{
+				if (sequence.length > 0)
+				{
+					that.translateAnimKeys(sequence[0]);
+					sequence.splice(0, 1);
+					console.log(sequence[0]);
+				}
+				else
+				{
+  					clearInterval(that.animationTempo);
+				}
+			}, time);
+  		}
 
   		init()
   		{
@@ -231,8 +250,26 @@ document.addEventListener("DOMContentLoaded", function(event)
 			  			window.addEventListener('resize', () => { this.updateCanvasSize(); }, false);
 
 			  			// TEMP ===>
-			  			let that = this;
-  						window.addEventListener('keydown', this.detectKey.bind(this, that), false);
+			  			this.loadAnimation(['playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerRotateRight',
+			  				'playerMoveFront',
+			  				'playerMoveFront',
+			  				'playerRotateRight',
+			  				'playerMoveBack',
+			  				'playerMoveBack',
+			  				'playerRotate25',
+			  				'playerMoveFront',
+			  				'playerMoveFront'], 250);
 			  			// <=== TEMP
 	  				}
 	  			}
