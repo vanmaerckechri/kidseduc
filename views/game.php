@@ -9,13 +9,23 @@ ob_start();
 			<canvas id="player-canvas" class="game-canvas"></canvas>
 		</div>
 		<div class="code-board">
+			<div class="code-example">
+				<p>moveFront(x) - moveBack(x) - rotate(y) - rotateRight(x) - rotateLeft(x)</p>
+				<p>x = loop times; y = angle</p>
+				<p>example:</p>
+				<p>Player.moveFront(5)</p>
+				<p>Player.rotate(15)</p>
+				<p>moveFront(5)</p>
+				<p>rotateRight(3)</p>
+				<p>Player.moveBack(3)</p>
+			</div>
 			<textarea id="code-container" class="code-container"></textarea>	
 			<div class="buttons-container">
 				<div class="buttons-settings">
 					<button id="run-button" class="run-button">
 						<?= $pageLang == "en" ?
-							"Run" : 
-							"走る"
+							"<p>Run<p>" : 
+							"<p>走る<p>"
 						?>
 					</button>
 				</div>

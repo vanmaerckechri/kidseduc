@@ -23,6 +23,11 @@
 	min-width: 450px;
 	display: flex;
 	flex-direction: column;
+	.code-example
+	{
+		padding: 10px;
+		font-size: 0.8rem;
+	}
 	.code-container
 	{
 		padding: 10px;
