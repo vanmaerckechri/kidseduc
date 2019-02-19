@@ -19,7 +19,9 @@ ob_start();
 				<p>rotateRight(3)</p>
 				<p>Player.moveBack(3)</p>
 			</div>
-			<textarea id="code-container" class="code-container"></textarea>	
+			<!--<textarea id="code-container" class="code-container"></textarea>-->
+			<code id="code-container" class="code-container" contenteditable="true" spellcheck="false">
+			</code>
 			<div class="buttons-container">
 				<div class="buttons-settings">
 					<button id="run-button" class="run-button">

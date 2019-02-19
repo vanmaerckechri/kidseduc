@@ -85,6 +85,12 @@ header {
     .code-board .buttons-container div {
       padding: 10px;
       height: 50%; }
+  .code-board .correctCode {
+    color: black;
+    background-color: green; }
+  .code-board .wrongCode {
+    color: black;
+    background-color: red; }
 
 .run-button {
   border: 1px solid black;

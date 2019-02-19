@@ -18,22 +18,51 @@ document.addEventListener("DOMContentLoaded", function(event)
 		}
 	}
 
-	class CodeLines
+	class CodeLinesEngine
 	{
 		constructor(mapObjs)
 		{
 			this.reg = this.init(mapObjs);
+			this.codeBlockTemp;
+			this.codeLines = [];
+			this.currentLine = 0;
+		}
+
+		resetColorLines()
+		{
+			let lines = document.querySelectorAll('#code-container p');
+			for (let i = lines.length - 1; i >= 0; i--)
+			{
+				lines[i].classList.remove("correctCode");
+				lines[i].classList.remove("wrongCode");
+			}
+		}
+
+		colorCurrentLine(className)
+		{
+			let lines = document.querySelectorAll('#code-container p');
+
+			if (this.currentLine > 0)
+			{
+				lines[this.currentLine - 1].classList.remove("correctCode");
+			}
+
+			lines[this.currentLine].classList.add(className);
+			 //= "<p class=\"currentcode\">" + textarea.childNodes[this.currentLine] + "</p>"
 		}
 
 		get getLines()
 		{
 			let textarea = document.getElementById('code-container');
 			//break code by lines
-			let codeLines = textarea.value.split('\n');
+			let codeBlock = textarea.innerText;
+			this.codeLines = codeBlock.split('\n');
 			//clean space and line break
-			codeLines = codeLines.filter(w => !w.match(/^\s*$/));
+			this.codeLines = this.codeLines.filter(w => !w.match(/^\s*$/));
+			this.currentLine = 0;
+			this.resetColorLines();
 
-			return codeLines;
+			return this.codeLines;
 		}
 
 		translate(code)
@@ -71,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 				// regex objects
 				if (curObj == "Player")
 				{
-					reg += "(" + curObj + "\\.)?";
+					reg += "^(" + curObj + "\\.)?";
 				}
 				else
 				{
@@ -87,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 					reg = i == length -1 ? reg + ")(\\([0-9]*\\))" : reg + "|";
 				}
 				
-				reg = index == length ? reg : reg + "|";
+				reg = index == length ? reg + "$" : reg + "|";
 
 				index += 1;
 			}
@@ -309,9 +338,10 @@ document.addEventListener("DOMContentLoaded", function(event)
 				else
 				{
   					clearInterval(that.animationTempo);
-  					that.codeLines.shift();
+  					that.codeLinesEngine.codeLines.shift();
   					that.animationTempo = null;
-  					if (that.codeLines.length > 0)
+  					that.codeLinesEngine.currentLine += 1;
+  					if (that.codeLinesEngine.codeLines.length > 0)
   					{
   						that.checkCode();
   					}
@@ -321,14 +351,16 @@ document.addEventListener("DOMContentLoaded", function(event)
 
 		checkCode()
 		{
-			this.codeLines = this.codeLines.length == 0 ? this.codeLinesEngine.getLines : this.codeLines;
+			let codeLines = this.codeLinesEngine.codeLines;
 
-			if (this.codeLines.length > 0 && this.animationTempo == null)
+			codeLines = codeLines.length == 0 ? this.codeLinesEngine.getLines : codeLines;
+
+			if (codeLines.length > 0 && this.animationTempo == null)
 			{
-				if (this.codeLinesEngine.check(this.codeLines[0]))
+				if (this.codeLinesEngine.check(codeLines[0]))
 				{
 					let animation = [];
-					let code = this.codeLinesEngine.translate(this.codeLines[0]);
+					let code = this.codeLinesEngine.translate(codeLines[0]);
 					code[0] = code[0].charAt(0).toLowerCase() + code[0].slice(1);
 					code[1] = code[1].charAt(0).toUpperCase() + code[1].slice(1);
 					if (code[1] != "Rotate")
@@ -343,12 +375,14 @@ document.addEventListener("DOMContentLoaded", function(event)
 					{
 						animation.push(code[0] + code[1] + code[2]);
 					}
+					this.codeLinesEngine.colorCurrentLine("correctCode");
 					this.loadAnimation(animation, 250);
 				}
 				else
 				{
-					alert("error on line: " + this.codeLines[0]);
-					this.codeLines = [];
+					this.codeLinesEngine.colorCurrentLine("wrongCode");
+					this.codeLinesEngine.codeLines = [];
+					alert("error");
 				}
 			}
 		}
@@ -375,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 						}
 
 						// init code system
-						this.codeLinesEngine = new CodeLines(mapObjects);
+						this.codeLinesEngine = new CodeLinesEngine(mapObjects);
 
 						// init canvas
 			  			this.canvas.style.marginLeft = this.canvasPadding + "px";
