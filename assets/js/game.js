@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 		resetColorLines()
 		{
 			let lines = document.querySelectorAll('#code-container p');
+
 			for (let i = lines.length - 1; i >= 0; i--)
 			{
 				lines[i].classList.remove("correctCode");
@@ -48,17 +49,49 @@ document.addEventListener("DOMContentLoaded", function(event)
 			}
 
 			lines[this.currentLine].classList.add(className);
-			 //= "<p class=\"currentcode\">" + textarea.childNodes[this.currentLine] + "</p>"
+		}
+
+		formatCodeBlock()
+		{
+			let textarea = document.getElementById('code-container');
+			let codeBlock = textarea.innerText;
+			textarea.innerText = codeBlock;
+
+			// remove all br from block code
+			let brList = document.querySelectorAll('#code-container br');
+
+			for (let i = brList.length - 1; i >= 0; i--)
+			{
+				brList[i].remove();
+			}
+			// move textNodes in p tag
+			let lines = document.querySelector('#code-container').childNodes;
+
+			for (let i = lines.length - 1; i >= 0; i--)
+			{
+				let newLine = document.createElement("p");
+				newLine.textContent = lines[i].textContent;
+				let parent = lines[i].parentNode;
+				let oldLine = lines[i];
+
+				parent.insertBefore(newLine, oldLine);
+
+				oldLine.remove();
+			}
 		}
 
 		get getLines()
 		{
+			this.formatCodeBlock();
+
 			let textarea = document.getElementById('code-container');
+			textarea.style = 'pointer-events: none';
 			//break code by lines
 			let codeBlock = textarea.innerText;
 			this.codeLines = codeBlock.split('\n');
 			//clean space and line break
 			this.codeLines = this.codeLines.filter(w => !w.match(/^\s*$/));
+
 			this.currentLine = 0;
 			this.resetColorLines();
 
@@ -345,6 +378,11 @@ document.addEventListener("DOMContentLoaded", function(event)
   					{
   						that.checkCode();
   					}
+  					else
+  					{
+  						let textarea = document.getElementById('code-container');
+						textarea.style = '';
+  					}
 				}
 			}, time);
   		}
@@ -382,6 +420,9 @@ document.addEventListener("DOMContentLoaded", function(event)
 				{
 					this.codeLinesEngine.colorCurrentLine("wrongCode");
 					this.codeLinesEngine.codeLines = [];
+
+					let textarea = document.getElementById('code-container');
+					textarea.style = '';
 					alert("error");
 				}
 			}
