@@ -4,9 +4,13 @@ document.addEventListener("DOMContentLoaded", function(event)
 	{
 		static get map01()
 		{
-			let objectList = ["Player", "Turtle"]
-
-			return objectList;
+			let mapInfo = 
+			{
+				objectList: ["Player", "Turtle"],
+				rowsLength: 21,
+				colsLength: 21
+			}
+			return mapInfo;
 		}
 	}
 
@@ -216,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function(event)
   			this.ctx.drawImage(imgRot, 0, 0, imgRot.width, imgRot.height, posX, posY, imgRot.width, imgRot.height);
   		}
 
-  		move(direction, cellSize)
+  		move(direction)
   		{
   			let hypo = 1;
   			let triangleWidth = hypo * Math.sin(this.angle * Math.PI / 180);
@@ -225,10 +229,10 @@ document.addEventListener("DOMContentLoaded", function(event)
   			triangleWidth = this.angle == 0 || this.angle == 180 ? 0 : triangleWidth;
   			triangleHeight = this.angle == 90 || this.angle == 270 ? 0 : triangleHeight;
 
-  			this.posCol = direction == 'playerMoveFront' ? this.posCol + triangleWidth : this.posCol - triangleWidth;
-  			this.posRow = direction == 'playerMoveFront' ? this.posRow + triangleHeight : this.posRow - triangleHeight;
+  			let posCol = direction == 'playerMoveFront' ? this.posCol + triangleWidth : this.posCol - triangleWidth;
+  			let posRow = direction == 'playerMoveFront' ? this.posRow + triangleHeight : this.posRow - triangleHeight;
 
-  			this.draw(cellSize);
+  			return {posCol: posCol, posRow: posRow};
   		}
 
   		rotate(direction, cellSize)
@@ -279,8 +283,8 @@ document.addEventListener("DOMContentLoaded", function(event)
 			this.ctx = this.canvas.getContext('2d');
 
 			this.cellSize = 16;
-			this.rowsLength = 21;
-			this.colsLength = 21;
+			this.rowsLength;
+			this.colsLength;
 
 			this.player;
 
@@ -343,11 +347,29 @@ document.addEventListener("DOMContentLoaded", function(event)
   			return Maps[this.currentMap];
   		}
 
+  		checkCollision(col, row)
+		{
+			if (col > 0 && col < this.colsLength - 1&& row > 0 && row < this.rowsLength - 1)
+			{
+				return false;
+			}
+			return true;
+		}
+
 		translateAnimKeys(key)
   		{
   			if (key == "playerMoveFront" || key == "playerMoveBack")
   			{
-  				this.player.move(key, this.cellSize);
+  				let newPlayerPos = this.player.move(key);
+  				let posCol = newPlayerPos['posCol'];
+  				let posRow = newPlayerPos['posRow'];
+
+  				if (this.checkCollision(posCol, posRow) == false)
+  				{
+	  				this.player.posCol = posCol;
+	  				this.player.posRow = posRow;
+	  				this.player.draw(this.cellSize);
+	  			}
   			}
   			else if (key.indexOf("playerRotate") !== -1)
   			{
@@ -443,11 +465,15 @@ document.addEventListener("DOMContentLoaded", function(event)
 	  				{
 	  					// init in game objects
 						let mapObjects = {};
-						let objectNames = this.getMapInfos;
+						let mapInfos = this.getMapInfos;
+						let objectNames = mapInfos['objectList'];
 						for (let i = objectNames.length - 1; i >= 0; i--)
 						{
 							mapObjects[objectNames[i]] = eval(objectNames[i]).getMethods;
 						}
+
+						this.rowsLength = mapInfos['rowsLength'];
+						this.colsLength = mapInfos['colsLength'];
 
 						// init code system
 						this.codeLinesEngine = new CodeLinesEngine(mapObjects);
