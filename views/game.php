@@ -6,6 +6,7 @@ ob_start();
 	<div class="game-container maxWidth-container">
 		<div class="game-board">
 			<canvas id="board-canvas" class="game-canvas"></canvas>
+			<canvas id="turtle-canvas" class="game-canvas"></canvas>
 			<canvas id="player-canvas" class="game-canvas"></canvas>
 		</div>
 		<div class="code-board">
@@ -47,6 +48,7 @@ $mainContent = ob_get_clean();
 
 ob_start();
 ?>
+<script src="./assets/js/map.js"></script>
 <script src="./assets/js/game.js"></script>
 <?php
 $javascriptContent = ob_get_clean();
