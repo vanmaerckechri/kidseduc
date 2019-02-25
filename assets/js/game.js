@@ -252,9 +252,41 @@ class Engine
 			for (let c = 0, cLength = colsLength; c < cLength; c++)
 			{
 				let posX = (cellSize * c);
-			this.ctx.rect(posX, posY, cellSize, cellSize);
-			//this.ctx.fillStyle = "blue"
-			this.ctx.stroke();
+				this.ctx.rect(posX, posY, cellSize, cellSize);
+				//this.ctx.fillStyle = "blue"
+				this.ctx.stroke();
+			}
+		}
+	}
+
+	refreshStarCanvas()
+	{
+		let canvas = this.map['starsCanvas'];
+		let ctx = this.map['starsCtx'];
+		let starsList = this.map['starsList'];
+
+		canvas.width = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
+		canvas.height = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		if (Object.keys(starsList).length > 0)
+		{
+			for (let starName in starsList)
+			{
+				let cellSize = this.map['cellSize'];
+				let star = starsList[starName];
+				let img = star['img'];
+				let sX = star['imgSrcRow'];
+				let sY = star['imgSrcCol'];
+				let sWidth = star['spriteSizeSrcX'];
+				let sHeight = star['spriteSizeSrcY'];
+				let dX = star['posCol'] * cellSize;
+				let dY = star['posRow'] * cellSize;
+				let dWidth = star['cellWidth'] * cellSize;
+				let dHeight = star['cellHeight'] * cellSize;
+
+				ctx.drawImage(img, sX, sY, sWidth, sHeight, dX, dY, dWidth, dHeight);
 			}
 		}
 	}
@@ -265,35 +297,34 @@ class Engine
 		this.canvas.width = 0;
 		this.canvas.height = 0;
 		
-		let canvasContainerSize;
 		let canvasContainerWidth = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
 		let canvasContainerHeight = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
 
 		// adapt to portrait or landscape
 		if (canvasContainerHeight > canvasContainerWidth)
 		{
-		  	canvasContainerSize = canvasContainerWidth;
-			this.map['cellSize'] = Math.floor(canvasContainerSize / this.map['colsLength']);	
+			this.map['cellSize'] = Math.floor(canvasContainerWidth / this.map['colsLength']);	
 		}
 		else
 		{
-			canvasContainerSize = canvasContainerHeight;
-			this.map['cellSize'] = Math.floor(canvasContainerSize / this.map['rowsLength']);
+			this.map['cellSize'] = Math.floor(canvasContainerHeight / this.map['rowsLength']);
 		}
 
-		this.canvas.width = canvasContainerSize;
-		this.canvas.height = canvasContainerSize;
+		this.canvas.width = canvasContainerWidth;
+		this.canvas.height = canvasContainerHeight;
 
 		this.drawMap();
 
 		let objectList = this.map['objectList'];
 		for (let obj in objectList)
-		{		
-			objectList[obj].canvas.width = canvasContainerSize;
-			objectList[obj].canvas.height = canvasContainerSize;
+		{
+			objectList[obj].canvas.width = canvasContainerWidth;
+			objectList[obj].canvas.height = canvasContainerHeight;
 
 			this.drawObj(objectList[obj]);
 		}
+
+		this.refreshStarCanvas();
 	}
 
 	checkCollisionBetween(obj1, obj2)
@@ -341,8 +372,12 @@ class Engine
 					let x = player.posCol - obj.posCol;
 					let y = player.posRow - obj.posRow;
 
+					/*
 					player.posCol = posCol + x;
 					player.posRow = posRow + y;
+					*/
+					player.posCol = posCol;
+					player.posRow = posRow;
 					this.drawObj(player);
 				}
 			}
@@ -350,6 +385,26 @@ class Engine
 			obj.posCol = posCol;
 			obj.posRow = posRow;
 			this.drawObj(obj);
+
+			if (objName == "player")
+			{
+				let player = this.map['objectList']['player'];
+				let starsList = this.map['starsList'];
+
+				for (let starName in starsList)
+				{
+					if (this.checkCollisionBetween(starsList[starName], player) == true)
+					{
+						console.log("touché")
+						delete starsList[starName];
+						this.refreshStarCanvas();
+						if (Object.keys(starsList).length == 0)
+						{
+							console.log("gagné")
+						}
+					}
+				}
+			}
 		}
 		else if (key.indexOf("playerRotate") !== -1)
 		{
@@ -383,7 +438,7 @@ class Engine
 				else
 				{
 					let textarea = document.getElementById('code-container');
-				textarea.style = '';
+					textarea.style = '';
 				}
 			}
 		}, time);
@@ -433,21 +488,27 @@ class Engine
 	preloadImg(backOnInit)
 	{
 		let objectList = this.map['objectList'];
-		let index = 0;
-		let imgsLength = Object.keys(objectList).length - 1;
+		let starsList = this.map['starsList'];
+		let imgsList = [objectList, starsList];
 
-		for (let objName in objectList)
+		let index = 0;
+		let imgsLength = Object.keys(objectList).length + Object.keys(starsList).length - 1;
+
+		for (let i = imgsList.length - 1; i >= 0; i--)
 		{
-			objectList[objName].img = new Image();
-			objectList[objName].img.onload = () =>
+			for (let objName in imgsList[i])
 			{
-				if(index == imgsLength)
+				imgsList[i][objName].img = new Image();
+				imgsList[i][objName].img.onload = () =>
 				{
-					backOnInit();
+					if(index == imgsLength)
+					{
+						backOnInit();
+					}
+					index += 1;
 				}
-				index += 1;
+				imgsList[i][objName].img.src = imgsList[i][objName].imgSrc;
 			}
-			objectList[objName].img.src = objectList[objName].imgSrc;
 		}
 	}
 
@@ -460,6 +521,9 @@ class Engine
 		{
 			this.canvas.style.marginLeft = this.canvasPadding + "px";
   			this.canvas.style.marginTop = this.canvasPadding + "px";
+
+  			this.map['starsCanvas'].style.marginLeft = this.canvasPadding + "px";
+  			this.map['starsCanvas'].style.marginTop = this.canvasPadding + "px";
 
   			// init all objects from this map
 			let objsMethods = {};

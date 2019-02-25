@@ -13,7 +13,7 @@ class Turtle
 		this.imgSrcRow = 0;
 		this.imgSrcCol = 0;
 
-		this.cellHeight = 4;
+		this.cellHeight = 5;
 		this.cellWidth = 3;
 		this.angle = 90;
 		this.posRow = posRow;
@@ -54,10 +54,33 @@ class Player
 	}
 }
 
+class Star
+{
+	constructor(posRow, posCol)
+	{
+		this.img;
+
+		this.imgSrc = './assets/img/star.png';
+		this.spriteSizeSrcX = 64;
+		this.spriteSizeSrcY = 64;
+		this.imgSrcRow = 0;
+		this.imgSrcCol = 0;
+
+		this.cellHeight = 1;
+		this.cellWidth = 1;
+		this.angle = 0;
+		this.posRow = posRow;
+		this.posCol = posCol;
+	}
+}
+
 class Map
 {
 	constructor()
 	{
+		this.starsCanvas = document.getElementById('star-canvas');
+		this.starsCtx = this.starsCanvas.getContext('2d');
+
 		this.cellSize = 16;
 		this.rowsLength = 21,
 		this.colsLength = 21,
@@ -66,6 +89,13 @@ class Map
 		{
 			player: new Player(Math.floor((this.rowsLength / 3) * 2), Math.floor(this.colsLength / 2)),
 			turtle: new Turtle(Math.floor(this.rowsLength / 3), Math.floor(this.colsLength / 3))
+		}
+
+		this.starsList = 
+		{
+			star1: new Star(Math.floor(this.rowsLength / 5), Math.floor(this.colsLength / 6)),
+			star2: new Star(Math.floor(this.rowsLength / 5), Math.floor((this.colsLength / 6) * 3)),
+			star3: new Star(Math.floor(this.rowsLength / 5), Math.floor((this.colsLength / 6) * 5))
 		}
 	}
 }

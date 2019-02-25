@@ -8,6 +8,7 @@ ob_start();
 			<canvas id="board-canvas" class="game-canvas"></canvas>
 			<canvas id="turtle-canvas" class="game-canvas"></canvas>
 			<canvas id="player-canvas" class="game-canvas"></canvas>
+			<canvas id="star-canvas" class="game-canvas"></canvas>
 		</div>
 		<div class="code-board">
 			<div class="code-example">
