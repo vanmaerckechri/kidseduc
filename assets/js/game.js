@@ -65,7 +65,6 @@ class CodeLinesEngine
 		this.formatCodeBlock();
 
 		let textarea = document.getElementById('code-container');
-		textarea.style = 'pointer-events: none';
 		//break code by lines
 		let codeBlock = textarea.innerText;
 		this.codeLines = codeBlock.split('\n');
@@ -75,6 +74,10 @@ class CodeLinesEngine
 		this.currentLine = 0;
 		this.resetColorLines();
 
+		if (this.codeLines.length > 0)
+		{		
+			textarea.style = 'pointer-events: none';
+		}
 		return this.codeLines;
 	}
 
@@ -142,10 +145,6 @@ class Engine
 {
 	constructor()
 	{
-		this.canvas = document.getElementById('board-canvas');
-		this.ctx = this.canvas.getContext('2d');
-		this.canvasPadding = 10;
-
 		this.map;
 		this.codeLinesEngine;
 
@@ -185,11 +184,14 @@ class Engine
 		return canvas;
 	}
 
-	drawObj(obj)
+	drawObj(obj, clearR = true)
 	{
 		let cellSize = this.map['cellSize'];
 
-		obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height);
+		if (clearR == true)
+		{
+			obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height);
+		}
 
 		let imgRot = this.rotateImg(obj);
 
@@ -241,52 +243,43 @@ class Engine
 
 	drawMap()
 	{
-		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+		this.map['ctx'].clearRect(0, 0, this.map['canvas'].width, this.map['canvas'].height);
+		
 		let rowsLength = this.map['rowsLength'];
 		let colsLength = this.map['colsLength'];
 		let cellSize = this.map['cellSize'];
+		
 		for (let r = 0, rLength = rowsLength; r < rLength; r++)
 		{
 			let posY = (cellSize * r);
 			for (let c = 0, cLength = colsLength; c < cLength; c++)
 			{
 				let posX = (cellSize * c);
-				this.ctx.rect(posX, posY, cellSize, cellSize);
-				//this.ctx.fillStyle = "blue"
-				this.ctx.stroke();
+				this.map['ctx'].rect(posX, posY, cellSize, cellSize);
+				//this.map['ctx'].fillStyle = "blue"
+				this.map['ctx'].stroke();
 			}
 		}
 	}
 
 	refreshStarCanvas()
 	{
-		let canvas = this.map['starsCanvas'];
-		let ctx = this.map['starsCtx'];
+		let starsCanvas = document.getElementById('star-canvas');
+		let starsCtx = starsCanvas.getContext('2d');
+
 		let starsList = this.map['starsList'];
 
-		canvas.width = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
-		canvas.height = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
+		starsCanvas.width = this.map['canvas'].width;
+		starsCanvas.height = this.map['canvas'].height;
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
 
-		if (Object.keys(starsList).length > 0)
+		if (starsList && Object.keys(starsList).length > 0)
 		{
 			for (let starName in starsList)
 			{
-				let cellSize = this.map['cellSize'];
 				let star = starsList[starName];
-				let img = star['img'];
-				let sX = star['imgSrcRow'];
-				let sY = star['imgSrcCol'];
-				let sWidth = star['spriteSizeSrcX'];
-				let sHeight = star['spriteSizeSrcY'];
-				let dX = star['posCol'] * cellSize;
-				let dY = star['posRow'] * cellSize;
-				let dWidth = star['cellWidth'] * cellSize;
-				let dHeight = star['cellHeight'] * cellSize;
-
-				ctx.drawImage(img, sX, sY, sWidth, sHeight, dX, dY, dWidth, dHeight);
+				this.drawObj(star, false);
 			}
 		}
 	}
@@ -294,32 +287,42 @@ class Engine
 	updateCanvasSize()
 	{
 		// rest canvas container size
-		this.canvas.width = 0;
-		this.canvas.height = 0;
+		this.map['canvas'].width = 0;
+		this.map['canvas'].height = 0;
 		
-		let canvasContainerWidth = this.canvas.parentNode.offsetWidth - (this.canvasPadding * 2);
-		let canvasContainerHeight = this.canvas.parentNode.offsetHeight - (this.canvasPadding * 2);
+		let canvasSize;
+		let canvasContainerWidth = this.map['canvas'].parentNode.offsetWidth - (this.map['canvasPadding'] * 2);
+		let canvasContainerHeight = this.map['canvas'].parentNode.offsetHeight - (this.map['canvasPadding'] * 2);
 
 		// adapt to portrait or landscape
 		if (canvasContainerHeight > canvasContainerWidth)
 		{
+			canvasSize = canvasContainerWidth;
 			this.map['cellSize'] = Math.floor(canvasContainerWidth / this.map['colsLength']);	
 		}
 		else
 		{
+			canvasSize = canvasContainerHeight;
 			this.map['cellSize'] = Math.floor(canvasContainerHeight / this.map['rowsLength']);
 		}
 
-		this.canvas.width = canvasContainerWidth;
-		this.canvas.height = canvasContainerHeight;
+		this.map['canvas'].width = canvasSize;
+		this.map['canvas'].height = canvasSize;
 
 		this.drawMap();
+
+		// draw water
+		if (this.map['water'])
+		{
+			let water = this.map['water'];
+			this.drawObj(water, false);
+		}
 
 		let objectList = this.map['objectList'];
 		for (let obj in objectList)
 		{
-			objectList[obj].canvas.width = canvasContainerWidth;
-			objectList[obj].canvas.height = canvasContainerHeight;
+			objectList[obj].canvas.width = canvasSize;
+			objectList[obj].canvas.height = canvasSize;
 
 			this.drawObj(objectList[obj]);
 		}
@@ -327,14 +330,29 @@ class Engine
 		this.refreshStarCanvas();
 	}
 
-	checkCollisionBetween(obj1, obj2)
+	checkCollisionBetween(obj1, obj2, obj1PadHeight = false)
 	{
-		if ((obj1['posCol'] >= obj2['posCol'] && obj1['posCol'] <= obj2['posCol'] + obj2['cellWidth'] && obj1['posRow'] >= obj2['posRow'] && obj1['posRow'] <= obj2['posRow'] + obj2['cellHeight'])
-			||
-			(obj2['posCol'] >= obj1['posCol'] && obj2['posCol'] <= obj1['posCol'] + obj1['cellWidth'] && obj2['posRow'] >= obj1['posRow'] && obj2['posRow'] <= obj1['posRow'] + obj1['cellHeight']))
+		let obj1PadH = obj1PadHeight != false ? obj1PadHeight : 0;
+
+		if (obj1 == this.map['water']){console.log(obj1PadH)}
+
+		let obj1PosLeft = obj1['posCol'] - (obj1['cellWidth'] / 2);
+		let obj1PosRight = obj1['posCol'] + (obj1['cellWidth'] / 2);
+		let obj1PosTop = obj1['posRow'] - (obj1['cellHeight'] / 2);
+		let obj1PosBot = obj1['posRow'] + (obj1['cellHeight'] / 2);
+
+		let obj2PosLeft = obj2['posCol'] - (obj2['cellWidth'] / 2);
+		let obj2PosRight = obj2['posCol'] + (obj2['cellWidth'] / 2);
+		let obj2PosTop = obj2['posRow'] - (obj2['cellHeight'] / 2);
+		let obj2PosBot = obj2['posRow'] + (obj2['cellHeight'] / 2);
+
+		if (obj2PosLeft <= obj1PosRight && obj2PosRight > obj1PosLeft
+			&&
+			obj2PosTop <= obj1PosBot + parseInt(obj1PadH, 10) && obj2PosBot + parseInt(obj1PadH, 10) > obj1PosTop)
 		{
 			return true;
 		}
+
 		return false;
 	}
 
@@ -367,17 +385,19 @@ class Engine
 			if (objName == "turtle")
 			{
 				let player = this.map['objectList']['player'];
+
 				if (this.checkCollisionBetween(obj, player) == true)
 				{
 					let x = player.posCol - obj.posCol;
 					let y = player.posRow - obj.posRow;
 
-					/*
+					
 					player.posCol = posCol + x;
 					player.posRow = posRow + y;
-					*/
+					/*
 					player.posCol = posCol;
 					player.posRow = posRow;
+					*/
 					this.drawObj(player);
 				}
 			}
@@ -402,6 +422,14 @@ class Engine
 						{
 							console.log("gagné")
 						}
+					}
+				}
+
+				if (this.checkCollisionBetween(this.map['water'], player, "-1") == true)
+				{
+					if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
+					{
+						console.log("plouf")
 					}
 				}
 			}
@@ -485,14 +513,65 @@ class Engine
 		}
 	}
 
+	initCellsInfosMap()
+	{
+		if (this.map['water'])
+		{
+			let cellSize = this.map['cellSize'];
+
+			let water = this.map['water'];
+			let posRow = water['posRow'];
+			let rowsLength = water['cellHeight'];
+			let posY = posRow - Math.floor(rowsLength / 2);
+
+			let posCol = water['posCol'];
+			let colsLength = water['cellWidth'];
+			let posX = posCol - Math.floor(colsLength / 2);
+
+			for (let r = 1, rLength = rowsLength; r < rLength - 1; r++)
+			{
+				for (let c = 0, cLength = colsLength; c < cLength; c++)
+				{
+					this.map['cellsInfos'][posY + r] = !this.map['cellsInfos'][posY + r] ? [] : this.map['cellsInfos'][posY + r];
+				}
+			}		
+		}
+	}
+
+	initPaddingCanvas()
+	{
+		let canvasList = document.querySelectorAll('canvas');
+		for (let i = canvasList.length - 1; i >= 0; i--)
+		{
+			let canvas = canvasList[i];
+			canvas.style.marginLeft = this.map['canvasPadding'] + "px";
+			canvas.style.marginTop = this.map['canvasPadding'] + "px";
+		}
+	}
+
 	preloadImg(backOnInit)
 	{
 		let objectList = this.map['objectList'];
-		let starsList = this.map['starsList'];
-		let imgsList = [objectList, starsList];
+		let imgsList = [objectList];
+		let imgsLength = Object.keys(objectList).length;
+
+		if (this.map['starsList'])
+		{
+			let starsList = this.map['starsList'];
+			imgsList.push(starsList);
+			imgsLength += Object.keys(starsList).length;
+		}
+
+		if (this.map['water'])
+		{
+			let waterImg = this.map['water'];
+			imgsList.push({waterImg: waterImg});
+			imgsLength += 1;
+		}
+
+		imgsLength -= 1;
 
 		let index = 0;
-		let imgsLength = Object.keys(objectList).length + Object.keys(starsList).length - 1;
 
 		for (let i = imgsList.length - 1; i >= 0; i--)
 		{
@@ -519,11 +598,7 @@ class Engine
 		// preload images
 		this.preloadImg(() =>
 		{
-			this.canvas.style.marginLeft = this.canvasPadding + "px";
-  			this.canvas.style.marginTop = this.canvasPadding + "px";
-
-  			this.map['starsCanvas'].style.marginLeft = this.canvasPadding + "px";
-  			this.map['starsCanvas'].style.marginTop = this.canvasPadding + "px";
+			this.initPaddingCanvas();
 
   			// init all objects from this map
 			let objsMethods = {};
@@ -535,9 +610,6 @@ class Engine
 
 	  			// init player
 	  			this[objName] = this.map.objectList[objName];
-
-	  			this[objName].canvas.style.marginLeft = this.canvasPadding + "px";
-	  			this[objName].canvas.style.marginTop = this.canvasPadding + "px";
 			}
 
 			// init code system with methods from objects
@@ -551,6 +623,8 @@ class Engine
 
   			//display game board
   			this.updateCanvasSize();
+
+  			this.initCellsInfosMap();
 		});
 	}
 }

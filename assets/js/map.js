@@ -1,31 +1,3 @@
-class Turtle
-{
-	constructor(posRow, posCol)
-	{
-		this.canvas = document.getElementById('turtle-canvas');
-		this.ctx = this.canvas.getContext('2d');
-
-		this.img;
-
-		this.imgSrc = './assets/img/turtle.png';
-		this.spriteSizeSrcX = 64;
-		this.spriteSizeSrcY = 64;
-		this.imgSrcRow = 0;
-		this.imgSrcCol = 0;
-
-		this.cellHeight = 5;
-		this.cellWidth = 3;
-		this.angle = 90;
-		this.posRow = posRow;
-		this.posCol = posCol;
-	}
-
-	get getMethods()
-	{
-		return ['moveFront', 'moveBack'];
-	}
-}
-
 class Player
 {
 	constructor(posRow, posCol)
@@ -46,6 +18,8 @@ class Player
 		this.angle = 0;
 		this.posRow = posRow;
 		this.posCol = posCol;
+
+		this.onTurtle = false;
 	}
 
 	get getMethods()
@@ -58,6 +32,9 @@ class Star
 {
 	constructor(posRow, posCol)
 	{
+		this.canvas = document.getElementById('star-canvas');
+		this.ctx = this.canvas.getContext('2d');
+
 		this.img;
 
 		this.imgSrc = './assets/img/star.png';
@@ -74,22 +51,82 @@ class Star
 	}
 }
 
+class Turtle
+{
+	constructor()
+	{
+		this.canvas = document.getElementById('turtle-canvas');
+		this.ctx = this.canvas.getContext('2d');
+
+		this.img;
+
+		this.imgSrc = './assets/img/turtle.png';
+		this.spriteSizeSrcX = 64;
+		this.spriteSizeSrcY = 64;
+		this.imgSrcRow = 0;
+		this.imgSrcCol = 0;
+
+		this.cellHeight = 4;
+		this.cellWidth = 3;
+		this.angle = 90;
+		this.posRow = 0;
+		this.posCol = 0;
+	}
+
+	get getMethods()
+	{
+		return ['moveFront', 'moveBack'];
+	}
+}
+
+class Water
+{
+	constructor(posRow, posCol)
+	{
+		this.canvas = document.getElementById('board-canvas');
+		this.ctx = this.canvas.getContext('2d');
+
+		this.img;
+
+		this.imgSrc = './assets/img/water.png';
+		this.spriteSizeSrcX = 336;
+		this.spriteSizeSrcY = 80;
+		this.imgSrcRow = 0;
+		this.imgSrcCol = 0;
+
+		this.cellHeight = 5;
+		this.cellWidth = 22;
+		this.angle = 0;
+		this.posRow = posRow;
+		this.posCol = posCol;
+	}
+}
+
 class Map
 {
 	constructor()
 	{
-		this.starsCanvas = document.getElementById('star-canvas');
-		this.starsCtx = this.starsCanvas.getContext('2d');
+		this.canvasPadding = 10;
+
+		this.canvas = document.getElementById('board-canvas');
+		this.ctx = this.canvas.getContext('2d');
 
 		this.cellSize = 16;
 		this.rowsLength = 21,
 		this.colsLength = 21,
+		this.cellsInfos = [],
+
+		this.water = new Water(Math.floor(this.rowsLength / 2), Math.floor(this.colsLength / 2));
+		/*this.water['cellHeight'] = this.water['spriteSizeSrcY'] / this.cellSize;
+		this.water['cellWidth'] = this.water['spriteSizeSrcX'] / this.cellSize;*/
 
 		this.objectList =
 		{
-			player: new Player(Math.floor((this.rowsLength / 3) * 2), Math.floor(this.colsLength / 2)),
-			turtle: new Turtle(Math.floor(this.rowsLength / 3), Math.floor(this.colsLength / 3))
+			player: new Player(Math.floor((this.rowsLength / 5) * 4), Math.floor(this.colsLength / 2)),
+			turtle: new Turtle()
 		}
+		this.objectList['turtle']['posRow'] = Math.floor(this.water['posRow']);
+		this.objectList['turtle']['posCol'] = Math.floor(this.colsLength / 5);
 
 		this.starsList = 
 		{
