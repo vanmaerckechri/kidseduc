@@ -15,7 +15,9 @@ ob_start();
 				<p>x = loop times; y = angle</p>
 				<p>example:</p>
 				<p>Player.moveFront(5)</p>
+				<p>Turtle.moveBack()</p>
 				<p>Player.rotate(15)</p>
+				<p>Turtle.moveFront(5)</p>
 				<p>moveFront(5)</p>
 				<p>rotateRight(3)</p>
 				<p>Player.moveBack(3)</p>

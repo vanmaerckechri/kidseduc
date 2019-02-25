@@ -156,23 +156,31 @@ class Engine
 		this.init();
 	}
 
-	rotateImg(img, sX, sY, sSize, dSize, rotateDeg)
+	rotateImg(obj)
 	{
 		let canvas = document.createElement('canvas');
 		let ctx = canvas.getContext('2d');
 
-		canvas.width = Math.sqrt((dSize * dSize) + (dSize * dSize));
+		let dSizeX = this.map['cellSize'] * obj['cellWidth'];
+		let dSizeY = this.map['cellSize'] * obj['cellHeight'];
+
+		canvas.width = Math.sqrt((dSizeX * dSizeX) + (dSizeY * dSizeY));
 		canvas.height = canvas.width;
 
 		let canvasHalfWidth = canvas.width / 2;
 		let canvasHalfHeight = canvas.height / 2;
 
 		ctx.translate(canvasHalfWidth, canvasHalfHeight);
-		ctx.rotate(rotateDeg * Math.PI / 180);
+		ctx.rotate(obj['angle'] * Math.PI / 180);
 		ctx.translate(- canvasHalfWidth, - canvasHalfHeight);
 
-		let dMiddle = (canvasHalfWidth) - (dSize / 2);
-		ctx.drawImage(img, sX, sY, sSize, sSize, dMiddle, dMiddle, dSize, dSize);
+		let sX = obj['imgSrcCol'] * obj['spriteSizeSrcX'];
+		let sY = obj['imgSrcRow'] * obj['spriteSizeSrcY'];
+
+		let dMiddleX = (canvasHalfWidth) - (dSizeX / 2);
+		let dMiddleY = (canvasHalfWidth) - (dSizeY / 2);
+
+		ctx.drawImage(obj['img'], sX, sY, obj['spriteSizeSrcX'], obj['spriteSizeSrcY'], dMiddleX, dMiddleY, dSizeX, dSizeY);
 
 		return canvas;
 	}
@@ -183,10 +191,7 @@ class Engine
 
 		obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height);
 
-		let imgSrcPosX = obj.imgCol * obj.spriteSizeSrc;
-		let imgSrcPosY = obj.imgRow * obj.spriteSizeSrc;
-
-		let imgRot = this.rotateImg(obj.img, imgSrcPosX, imgSrcPosY, obj.spriteSizeSrc, obj.spriteSize, obj.angle);
+		let imgRot = this.rotateImg(obj);
 
 		let posX = (obj.posCol * cellSize) + (cellSize / 2) - (imgRot.width / 2);
 		let posY = (obj.posRow * cellSize) + (cellSize / 2) - (imgRot.height / 2);
@@ -287,15 +292,24 @@ class Engine
 			objectList[obj].canvas.width = canvasContainerSize;
 			objectList[obj].canvas.height = canvasContainerSize;
 
-			objectList[obj].spriteSize = objectList[obj].spriteRatio * this.map['cellSize'];
-
 			this.drawObj(objectList[obj]);
 		}
 	}
 
-	checkCollision(col, row)
+	checkCollisionBetween(obj1, obj2)
 	{
-		if (col > 0 && col < this.map['colsLength'] - 1&& row > 0 && row < this.map['rowsLength'] - 1)
+		if ((obj1['posCol'] >= obj2['posCol'] && obj1['posCol'] <= obj2['posCol'] + obj2['cellWidth'] && obj1['posRow'] >= obj2['posRow'] && obj1['posRow'] <= obj2['posRow'] + obj2['cellHeight'])
+			||
+			(obj2['posCol'] >= obj1['posCol'] && obj2['posCol'] <= obj1['posCol'] + obj1['cellWidth'] && obj2['posRow'] >= obj1['posRow'] && obj2['posRow'] <= obj1['posRow'] + obj1['cellHeight']))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	checkEdgeCollision(col, row)
+	{
+		if (col > 0 && col < this.map['colsLength'] - 1 && row > 0 && row < this.map['rowsLength'] - 1)
 		{
 			return false;
 		}
@@ -310,16 +324,32 @@ class Engine
 			let objName = key.slice(0, index);
 			let obj = this.map['objectList'][objName];
 			let action = key.slice(index, key.length);
-			let newPlayerPos = this.moveObj(obj, action);
-			let posCol = newPlayerPos['posCol'];
-			let posRow = newPlayerPos['posRow'];
+			let newPos = this.moveObj(obj, action);
+			let posCol = newPos['posCol'];
+			let posRow = newPos['posRow'];
 
-			if (this.checkCollision(posCol, posRow) == false)
+			if (this.checkEdgeCollision(posCol, posRow) == true)
 			{
-				obj.posCol = posCol;
-				obj.posRow = posRow;
-				this.drawObj(obj);
+				return;
 			}
+
+			if (objName == "turtle")
+			{
+				let player = this.map['objectList']['player'];
+				if (this.checkCollisionBetween(obj, player) == true)
+				{
+					let x = player.posCol - obj.posCol;
+					let y = player.posRow - obj.posRow;
+
+					player.posCol = posCol + x;
+					player.posRow = posRow + y;
+					this.drawObj(player);
+				}
+			}
+
+			obj.posCol = posCol;
+			obj.posRow = posRow;
+			this.drawObj(obj);
 		}
 		else if (key.indexOf("playerRotate") !== -1)
 		{
@@ -444,8 +474,6 @@ class Engine
 
 	  			this[objName].canvas.style.marginLeft = this.canvasPadding + "px";
 	  			this[objName].canvas.style.marginTop = this.canvasPadding + "px";
-
-				this[objName].spriteRatio = this[objName].spriteSize / this.map['cellSize'];
 			}
 
 			// init code system with methods from objects
