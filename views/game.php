@@ -47,8 +47,18 @@ ob_start();
 	<div id="message-container" class="message-container">
 		<div class="message-box">
 			<p id="message-content" class="message-content">LOADING</p>
-			<button id="intro-button" class="message-button hidden">PLAY</button>
-			<button id="restart-button" class="message-button hidden">RESTART</button>
+			<button id="intro-button" class="message-button hidden">
+				<?= $pageLang == "en" ?
+					"PLAY" : 
+					"遊びます"
+				?>
+			</button>
+			<button id="restart-button" class="message-button hidden">
+				<?= $pageLang == "en" ?
+					"RESTART" : 
+					"再起動"
+				?>
+			</button>
 		</div>
 	</div>
 </div>

@@ -155,6 +155,8 @@ class Engine
 {
 	constructor()
 	{
+		this.htmlLang = document.documentElement.lang;
+
 		this.map;
 		this.codeLinesEngine;
 
@@ -435,8 +437,8 @@ class Engine
 				{
 					if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
 					{
-						console.log("plouf");
-						this.loadGameLost("You drowned!");
+						let message = this.htmlLang == "en" ? "You drowned!" : "溺れた";
+						this.loadGameLost(message);
 					}
 				}
 			}
@@ -602,7 +604,7 @@ class Engine
 		let messageContent = document.getElementById('message-content');
 		let introButton = document.getElementById('intro-button');
 
-		messageContent.innerText = this.map['intro'];
+		messageContent.innerText = this.htmlLang == "en" ? this.map['introEn'] : this.map['introJp'];
 		introButton.classList.remove('hidden');
 	}
 

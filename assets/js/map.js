@@ -116,7 +116,8 @@ class Map
 		this.colsLength = 21,
 		this.cellsInfos = [],
 
-		this.intro = "use the \"Turtle\" to cross the river...";
+		this.introEn = "use the \"Turtle\" to cross the river...";
+		this.introJp = "川を渡るのに「カメ」を使用しなさい…";
 
 		this.water = new Water(Math.floor(this.rowsLength / 2), Math.floor(this.colsLength / 2));
 		/*this.water['cellHeight'] = this.water['spriteSizeSrcY'] / this.cellSize;
