@@ -101,6 +101,9 @@ class CodeLinesEngine
 		{
 			return true;
 		}
+
+		console.log(code.match(this.regObjects))
+
 		return false;
 	}
 
@@ -108,6 +111,7 @@ class CodeLinesEngine
 	{
 		// build regex
 		let reg = "";
+		let regObjects = "";
 		let index = 0;
 		let length = Object.keys(mapObjects).length - 1;
 
@@ -118,10 +122,14 @@ class CodeLinesEngine
 			if (objName == "Player")
 			{
 				reg += "^(" + objName + "\\.)?";
+				
+				this.regObjects = "(" + objName +"\\.";
 			}
 			else
 			{
 				reg += objName + "\\.";
+
+				this.regObjects += objName + "\\.";
 			}
 			// regex methods
 			for (let i = 0, length = mapObjects[curObj].length; i < length; i++)
@@ -134,6 +142,8 @@ class CodeLinesEngine
 			}
 			
 			reg = index == length ? reg + "$" : reg + "|";
+
+			this.regObjects = index == length ? this.regObjects + ")" : this.regObjects + "|";
 
 			index += 1;
 		}
@@ -148,9 +158,9 @@ class Engine
 		this.map;
 		this.codeLinesEngine;
 
-		this.codeLines = [];
-
 		this.animationTempo = null;
+
+		this.sequence = [];
 
 		this.init();
 	}
@@ -334,8 +344,6 @@ class Engine
 	{
 		let obj1PadH = obj1PadHeight != false ? obj1PadHeight : 0;
 
-		if (obj1 == this.map['water']){console.log(obj1PadH)}
-
 		let obj1PosLeft = obj1['posCol'] - (obj1['cellWidth'] / 2);
 		let obj1PosRight = obj1['posCol'] + (obj1['cellWidth'] / 2);
 		let obj1PosTop = obj1['posRow'] - (obj1['cellHeight'] / 2);
@@ -346,9 +354,7 @@ class Engine
 		let obj2PosTop = obj2['posRow'] - (obj2['cellHeight'] / 2);
 		let obj2PosBot = obj2['posRow'] + (obj2['cellHeight'] / 2);
 
-		if (obj2PosLeft <= obj1PosRight && obj2PosRight > obj1PosLeft
-			&&
-			obj2PosTop <= obj1PosBot + parseInt(obj1PadH, 10) && obj2PosBot + parseInt(obj1PadH, 10) > obj1PosTop)
+		if (obj2PosLeft <= obj1PosRight && obj2PosRight > obj1PosLeft && obj2PosTop <= obj1PosBot + parseInt(obj1PadH, 10) && obj2PosBot + parseInt(obj1PadH, 10) > obj1PosTop)
 		{
 			return true;
 		}
@@ -365,7 +371,7 @@ class Engine
 		return true;
 	}
 
-	translateAnimKeys(key)
+	launchAnimation(key)
 	{
 		let index = key.indexOf("MoveFront") != -1 ? key.indexOf("MoveFront") : key.indexOf("MoveBack")
 		if (index != -1)
@@ -429,7 +435,8 @@ class Engine
 				{
 					if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
 					{
-						console.log("plouf")
+						console.log("plouf");
+						this.loadGameLost("You drowned!");
 					}
 				}
 			}
@@ -443,15 +450,15 @@ class Engine
 		}
 	}
 
-	loadAnimation(sequence, time)
+	loadAnimation(time)
 	{
 		let that = this;
 		this.animationTempo = setInterval(function()
 		{
-			if (sequence.length > 0)
+			if (that.sequence.length > 0)
 			{
-				that.translateAnimKeys(sequence[0]);
-				sequence.splice(0, 1);
+				that.launchAnimation(that.sequence[0]);
+				that.sequence.splice(0, 1);
 			}
 			else
 			{
@@ -482,7 +489,6 @@ class Engine
 		{
 			if (this.codeLinesEngine.check(codeLines[0]))
 			{
-				let animation = [];
 				let code = this.codeLinesEngine.translate(codeLines[0]);
 				code[0] = code[0].charAt(0).toLowerCase() + code[0].slice(1);
 				code[1] = code[1].charAt(0).toUpperCase() + code[1].slice(1);
@@ -491,15 +497,15 @@ class Engine
 					code[2] = code[2] == "" ? 1 : code[2];
 					for (let i = 0, length = code[2]; i < length; i++)
 					{
-						animation.push(code[0] + code[1]);
+						this.sequence.push(code[0] + code[1]);
 					}
 				}
 				else
 				{
-					animation.push(code[0] + code[1] + code[2]);
+					this.sequence.push(code[0] + code[1] + code[2]);
 				}
 				this.codeLinesEngine.colorCurrentLine("correctCode");
-				this.loadAnimation(animation, 250);
+				this.loadAnimation(250);
 			}
 			else
 			{
@@ -513,6 +519,7 @@ class Engine
 		}
 	}
 
+/*
 	initCellsInfosMap()
 	{
 		if (this.map['water'])
@@ -537,6 +544,7 @@ class Engine
 			}		
 		}
 	}
+*/
 
 	initPaddingCanvas()
 	{
@@ -547,6 +555,55 @@ class Engine
 			canvas.style.marginLeft = this.map['canvasPadding'] + "px";
 			canvas.style.marginTop = this.map['canvasPadding'] + "px";
 		}
+	}
+
+	reset()
+	{
+		let events = false;
+
+		let messageContainer = document.getElementById('message-container');
+		let restartButton = document.getElementById('restart-button');
+
+		messageContainer.classList.add('hidden');
+		restartButton.classList.add('hidden');
+
+		this.codeLinesEngine.resetColorLines();
+
+		this.init(events);
+	}
+
+	loadGameLost(lostMessage)
+	{
+		this.codeLinesEngine.codeLines = [];
+		this.sequence = [];
+
+		let messageContainer = document.getElementById('message-container');
+		let messageContent = document.getElementById('message-content');
+		let restartButton = document.getElementById('restart-button');
+
+		messageContent.innerText = lostMessage;
+
+		restartButton.classList.remove('hidden');
+		messageContainer.classList.remove('hidden');
+	}
+
+	closeGameIntro()
+	{
+		let messageContainer = document.getElementById('message-container');
+		let introButton = document.getElementById('intro-button');
+
+		messageContainer.classList.add('hidden');
+		introButton.classList.add('hidden');
+	}
+
+	loadGameIntro()
+	{
+		let messageContainer = document.getElementById('message-container');
+		let messageContent = document.getElementById('message-content');
+		let introButton = document.getElementById('intro-button');
+
+		messageContent.innerText = this.map['intro'];
+		introButton.classList.remove('hidden');
 	}
 
 	preloadImg(backOnInit)
@@ -591,7 +648,7 @@ class Engine
 		}
 	}
 
-	init()
+	init(events = true)
 	{
 		// init map
 		this.map = new Map();
@@ -616,15 +673,24 @@ class Engine
 			this.codeLinesEngine = new CodeLinesEngine(objsMethods);
 
   			// events
-			let runBtn = document.getElementById('run-button');
-			runBtn.addEventListener('click', () => { this.checkCode(); }, false);
+  			if (events == true)
+  			{
+				let runBtn = document.getElementById('run-button');
+				runBtn.addEventListener('click', () => { this.checkCode(); }, false);
 
-  			window.addEventListener('resize', () => { this.updateCanvasSize(); }, false);
+	  			window.addEventListener('resize', () => { this.updateCanvasSize(); }, false);
+
+				let introButton = document.getElementById('intro-button');
+	  			introButton.addEventListener('click', () => { this.closeGameIntro(); }, false);
+
+				let restartButton = document.getElementById('restart-button');
+	  			restartButton.addEventListener('click', () => { this.reset(); }, false);
+
+	  			this.loadGameIntro();
+  			}
 
   			//display game board
   			this.updateCanvasSize();
-
-  			this.initCellsInfosMap();
 		});
 	}
 }

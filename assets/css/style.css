@@ -31,6 +31,10 @@ body {
   align-items: center;
   flex-wrap: wrap; }
 
+.hidden {
+  opacity: 0 !important;
+  pointer-events: none; }
+
 header {
   width: 100%;
   background-color: #75858c; }
@@ -98,6 +102,44 @@ header {
   font-size: 1rem; }
   .run-button:hover {
     cursor: pointer; }
+
+.message-container {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: opacity 0.2s; }
+
+.message-box {
+  border: 1px solid black;
+  padding: 50px;
+  position: relative;
+  max-width: 750px;
+  width: 100%;
+  max-height: 350px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white; }
+
+.message-button {
+  margin: 1rem;
+  border: 1px solid grey;
+  padding: 0.5rem 1rem;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 1.5rem; }
+  .message-button:hover {
+    cursor: pointer;
+    background-color: grey; }
 
 @media screen and (max-width: 900px) {
   .game-container {

@@ -44,6 +44,13 @@ ob_start();
 			</div>
 		</div>
 	</div>
+	<div id="message-container" class="message-container">
+		<div class="message-box">
+			<p id="message-content" class="message-content">LOADING</p>
+			<button id="intro-button" class="message-button hidden">PLAY</button>
+			<button id="restart-button" class="message-button hidden">RESTART</button>
+		</div>
+	</div>
 </div>
 
 <?php

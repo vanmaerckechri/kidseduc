@@ -66,7 +66,7 @@ class Turtle
 		this.imgSrcRow = 0;
 		this.imgSrcCol = 0;
 
-		this.cellHeight = 4;
+		this.cellHeight = 3;
 		this.cellWidth = 3;
 		this.angle = 90;
 		this.posRow = 0;
@@ -115,6 +115,8 @@ class Map
 		this.rowsLength = 21,
 		this.colsLength = 21,
 		this.cellsInfos = [],
+
+		this.intro = "use the \"Turtle\" to cross the river...";
 
 		this.water = new Water(Math.floor(this.rowsLength / 2), Math.floor(this.colsLength / 2));
 		/*this.water['cellHeight'] = this.water['spriteSizeSrcY'] / this.cellSize;
