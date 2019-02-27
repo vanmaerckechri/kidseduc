@@ -5,7 +5,7 @@ class CodeLinesEngine
 		this.reg = this.init(mapObjs);
 		this.codeBlockTemp;
 		this.codeLines = [];
-		this.currentLine = 0;
+		this.currentSequenceLine = 0;
 	}
 
 	resetColorLines()
@@ -19,16 +19,16 @@ class CodeLinesEngine
 		}
 	}
 
-	colorCurrentLine(className)
+	colorcurrentSequenceLine(className)
 	{
 		let lines = document.querySelectorAll('#code-container p');
 
-		if (this.currentLine > 0)
+		if (this.currentSequenceLine > 0)
 		{
-			lines[this.currentLine - 1].classList.remove("correctCode");
+			lines[this.currentSequenceLine - 1].classList.remove("correctCode");
 		}
 
-		lines[this.currentLine].classList.add(className);
+		lines[this.currentSequenceLine].classList.add(className);
 	}
 
 	formatCodeBlock()
@@ -65,18 +65,20 @@ class CodeLinesEngine
 		this.formatCodeBlock();
 
 		let textarea = document.getElementById('code-container');
+		let runButton = document.getElementById('run-button');
 		//break code by lines
 		let codeBlock = textarea.innerText;
 		this.codeLines = codeBlock.split('\n');
 		//clean space and line break
 		this.codeLines = this.codeLines.filter(w => !w.match(/^\s*$/));
 
-		this.currentLine = 0;
+		this.currentSequenceLine = 0;
 		this.resetColorLines();
 
 		if (this.codeLines.length > 0)
 		{		
 			textarea.style = 'pointer-events: none';
+			runButton.style = 'pointer-events: none';
 		}
 		return this.codeLines;
 	}
@@ -160,6 +162,7 @@ class Engine
 		this.map;
 		this.codeLinesEngine;
 
+		this.sequenceTempo = null;
 		this.animationTempo = null;
 
 		this.sequence = [];
@@ -231,26 +234,27 @@ class Engine
 	rotateObj(obj, direction)
 	{
 		let cellSize = this.map['cellSize'];
+		let newAngle = 0;
 
 		if (typeof direction == "string")
 		{
-			obj.angle = direction == "Right" ? obj.angle + 90 : obj.angle - 90;
+			newAngle = direction == "Right" ? obj.angle + 90 : obj.angle - 90;
 		}
 		else
 		{
-			obj.angle = obj.angle + direction;
+			newAngle = obj.angle + direction;
 		}
 
 		if (obj.angle == (360 + direction))
 		{
-			obj.angle = direction;
+			newAngle = direction;
 		}
 		else if(obj.angle == (-1 * direction))
 		{
-			obj.angle = 360 - direction;
+			newAngle = 360 - direction;
 		}
 
-		this.drawObj(obj);
+		return newAngle;
 	}
 
 	drawMap()
@@ -373,22 +377,18 @@ class Engine
 		return true;
 	}
 
-	launchAnimation(key)
+	smoothMoveObj(time, objName, obj, newPosCol, newPosRow, continueAnimation)
 	{
-		let index = key.indexOf("MoveFront") != -1 ? key.indexOf("MoveFront") : key.indexOf("MoveBack")
-		if (index != -1)
-		{
-			let objName = key.slice(0, index);
-			let obj = this.map['objectList'][objName];
-			let action = key.slice(index, key.length);
-			let newPos = this.moveObj(obj, action);
-			let posCol = newPos['posCol'];
-			let posRow = newPos['posRow'];
+		let xLength = obj.posCol - newPosCol;
+		let yLength = obj.posRow - newPosRow;
+		let xSmoothStep = xLength / 10;
+		let YSmoothStep = yLength / 10;
 
-			if (this.checkEdgeCollision(posCol, posRow) == true)
-			{
-				return;
-			}
+		this.sequenceTempo = setInterval(()=>
+		{
+			obj.posCol -= xSmoothStep;
+			obj.posRow -= YSmoothStep;
+			this.drawObj(obj);
 
 			if (objName == "turtle")
 			{
@@ -396,12 +396,8 @@ class Engine
 
 				if (this.checkCollisionBetween(obj, player) == true)
 				{
-					let x = player.posCol - obj.posCol;
-					let y = player.posRow - obj.posRow;
-
-					
-					player.posCol = posCol + x;
-					player.posRow = posRow + y;
+					player.posCol -= xSmoothStep;
+					player.posRow -= YSmoothStep;
 					/*
 					player.posCol = posCol;
 					player.posRow = posRow;
@@ -410,75 +406,130 @@ class Engine
 				}
 			}
 
-			obj.posCol = posCol;
-			obj.posRow = posRow;
+			if (obj.posCol.toFixed(1) == newPosCol.toFixed(1) && obj.posRow.toFixed(1) == newPosRow.toFixed(1))
+			{
+				clearInterval(this.sequenceTempo);
+				continueAnimation();
+			}
+		}, time);
+	}
+
+	smoothRotateObj(time, obj, newAngle, continueAnimation)
+	{
+		let direction = obj.angle < newAngle ? 1 : -1;
+
+		this.sequenceTempo = setInterval(()=>
+		{
+			obj.angle += direction
 			this.drawObj(obj);
 
-			if (objName == "player")
+			if (obj.angle == newAngle)
 			{
-				let player = this.map['objectList']['player'];
-				let starsList = this.map['starsList'];
+				clearInterval(this.sequenceTempo);
+				continueAnimation();
+			}
+		}, time);
+	}
 
-				for (let starName in starsList)
+	launchAnimation(key, callNextSequenceLine)
+	{
+		if (key.indexOf("Move") != -1)
+		{
+			let index = key.indexOf("Move");
+			let objName = key.slice(0, index);
+			let obj = this.map['objectList'][objName];
+			let action = key.slice(index, key.length);
+			let newPos = this.moveObj(obj, action);
+			let newPosCol = newPos['posCol'];
+			let newPosRow = newPos['posRow'];
+
+			if (this.checkEdgeCollision(newPosCol, newPosRow) == true)
+			{
+				callNextSequenceLine();
+				return;
+			}
+
+			this.smoothMoveObj(10, objName, obj, newPosCol, newPosRow, ()=>
+			{
+				if (objName == "player")
 				{
-					if (this.checkCollisionBetween(starsList[starName], player) == true)
+					let player = this.map['objectList']['player'];
+					let starsList = this.map['starsList'];
+
+					for (let starName in starsList)
 					{
-						console.log("touché")
-						delete starsList[starName];
-						this.refreshStarCanvas();
-						if (Object.keys(starsList).length == 0)
+						if (this.checkCollisionBetween(starsList[starName], player) == true)
 						{
-							console.log("gagné")
+							console.log("touché")
+							delete starsList[starName];
+							this.refreshStarCanvas();
+							if (Object.keys(starsList).length == 0)
+							{
+								console.log("gagné")
+							}
+						}
+					}
+
+					if (this.checkCollisionBetween(this.map['water'], player, "-1") == true)
+					{
+						if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
+						{
+							let message = this.htmlLang == "en" ? "You drowned!" : "溺れた";
+							this.loadGameLost(message);
 						}
 					}
 				}
-
-				if (this.checkCollisionBetween(this.map['water'], player, "-1") == true)
-				{
-					if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
-					{
-						let message = this.htmlLang == "en" ? "You drowned!" : "溺れた";
-						this.loadGameLost(message);
-					}
-				}
-			}
+				callNextSequenceLine();
+			});
 		}
-		else if (key.indexOf("playerRotate") !== -1)
+		else if (key.indexOf("Rotate") != -1)
 		{
-			key = key.replace("playerRotate", "");
+			let index = key.indexOf("Rotate");
+			let objName = key.slice(0, index);
+			let obj = this.map['objectList'][objName];
+
+			key = key.replace(objName + "Rotate", "");
 			key = key.match(/\d+/g) != null ? parseInt(key, 10) : key;
 
-			this.rotateObj(this.player, key);
+			let newAngle = this.rotateObj(this.player, key);
+			this.smoothRotateObj(5, obj, newAngle, ()=>
+			{
+				callNextSequenceLine()
+			})
 		}
 	}
 
-	loadAnimation(time)
+	loadAnimation()
 	{
-		let that = this;
-		this.animationTempo = setInterval(function()
+		this.launchAnimation(this.sequence[0], () =>
 		{
-			if (that.sequence.length > 0)
+			this.sequence.splice(0, 1);
+			// call next sequence line
+			if (this.sequence.length > 0)
 			{
-				that.launchAnimation(that.sequence[0]);
-				that.sequence.splice(0, 1);
+				//this.launchAnimation(this.sequence[0]);
+				this.loadAnimation();
 			}
+			// no more sequence line
 			else
 			{
-				clearInterval(that.animationTempo);
-				that.codeLinesEngine.codeLines.shift();
-				that.animationTempo = null;
-				that.codeLinesEngine.currentLine += 1;
-				if (that.codeLinesEngine.codeLines.length > 0)
+				this.codeLinesEngine.codeLines.shift();
+				this.codeLinesEngine.currentSequenceLine += 1;
+				// call next code line
+				if (this.codeLinesEngine.codeLines.length > 0)
 				{
-					that.checkCode();
+					this.checkCode();
 				}
+				// no more code line
 				else
 				{
 					let textarea = document.getElementById('code-container');
+					let runButton = document.getElementById('run-button');
 					textarea.style = '';
+					runButton.style = '';
 				}
 			}
-		}, time);
+		})
 	}
 
 	checkCode()
@@ -487,7 +538,7 @@ class Engine
 
 		codeLines = codeLines.length == 0 ? this.codeLinesEngine.getLines : codeLines;
 
-		if (codeLines.length > 0 && this.animationTempo == null)
+		if (codeLines.length > 0)
 		{
 			if (this.codeLinesEngine.check(codeLines[0]))
 			{
@@ -506,17 +557,15 @@ class Engine
 				{
 					this.sequence.push(code[0] + code[1] + code[2]);
 				}
-				this.codeLinesEngine.colorCurrentLine("correctCode");
-				this.loadAnimation(250);
+				this.codeLinesEngine.colorcurrentSequenceLine("correctCode");
+				this.loadAnimation();
 			}
 			else
 			{
-				this.codeLinesEngine.colorCurrentLine("wrongCode");
+				this.codeLinesEngine.colorcurrentSequenceLine("wrongCode");
 				this.codeLinesEngine.codeLines = [];
 
-				let textarea = document.getElementById('code-container');
-				textarea.style = '';
-				alert("error");
+				this.loadGameLost("error");
 			}
 		}
 	}
@@ -570,6 +619,11 @@ class Engine
 		restartButton.classList.add('hidden');
 
 		this.codeLinesEngine.resetColorLines();
+
+		let textarea = document.getElementById('code-container');
+		let runButton = document.getElementById('run-button');
+		textarea.style = '';
+		runButton.style = '';
 
 		this.init(events);
 	}
