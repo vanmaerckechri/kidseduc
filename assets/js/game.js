@@ -98,13 +98,14 @@ class CodeLinesEngine
 	}
 
 	check(code)
-	{
+	{		
+		//console.log(code.match(this.regObjects))
+
 		if (code.match(this.reg))
 		{
 			return true;
 		}
 
-		console.log(code.match(this.regObjects))
 
 		return false;
 	}
@@ -140,7 +141,7 @@ class CodeLinesEngine
 
 				reg += mapObjects[curObj][i];
 
-				reg = i == length -1 ? reg + ")(\\([0-9]*\\))" : reg + "|";
+				reg = i == length -1 ? reg + ")(\\([0-9]*\\))$" : reg + "|";
 			}
 			
 			reg = index == length ? reg + "$" : reg + "|";
@@ -149,6 +150,7 @@ class CodeLinesEngine
 
 			index += 1;
 		}
+
 		return reg;
 	}
 }
