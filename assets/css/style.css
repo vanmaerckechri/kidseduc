@@ -69,6 +69,20 @@ header {
   min-width: 450px;
   background-color: #77985d; }
 
+.measure-icon {
+  position: absolute;
+  left: 18px;
+  top: 4px;
+  width: 48px;
+  height: auto; }
+  .measure-icon:hover {
+    cursor: pointer; }
+
+.measureMobile-icon {
+  display: block;
+  position: fixed;
+  pointer-events: none; }
+
 .code-board {
   flex: 2;
   min-width: 450px;

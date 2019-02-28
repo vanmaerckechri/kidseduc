@@ -17,6 +17,24 @@
 	min-width: 450px;
 	background-color: $grass-bgColor;
 }
+.measure-icon
+{
+	position: absolute;
+	left: 18px;
+	top: 4px;
+	width: 48px;
+	height: auto;
+	&:hover
+	{
+		cursor: pointer;
+	}
+}
+.measureMobile-icon
+{
+	display: block;
+	position: fixed;
+	pointer-events: none;
+}
 .code-board
 {
 	flex: 2;

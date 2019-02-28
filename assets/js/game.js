@@ -157,6 +157,8 @@ class Engine
 {
 	constructor()
 	{
+		this.isMeasure = false;
+
 		this.htmlLang = document.documentElement.lang;
 
 		this.map;
@@ -344,6 +346,10 @@ class Engine
 		}
 
 		this.refreshStarCanvas();
+
+		let uiCanvas = document.getElementById('ui-canvas');
+		uiCanvas.width = canvasSize;
+		uiCanvas.height = canvasSize
 	}
 
 	checkCollisionBetween(obj1, obj2, obj1PadHeight = false)
@@ -596,6 +602,135 @@ class Engine
 		}
 	}
 */
+
+// SOME MOUSE TOOLS
+
+	getMouseCanvasPos(canvas, event)
+	{
+		let canvasInfos = canvas.getBoundingClientRect();
+		let canvasTop = canvasInfos.top;
+		let canvasLeft = canvasInfos.left;
+
+		return [event.clientX - canvasLeft, event.clientY - canvasTop];
+	}
+
+	putObjDomOnMouse(obj, event)
+	{
+		obj.style.left = event.clientX + "px";
+		obj.style.top = event.clientY + "px";
+	}
+
+// MEASURING DEVICE
+
+	closeMeasure(canvas)
+	{
+		let ctx = canvas.getContext('2d');
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		let measureMobileIcon = document.getElementById('measureMobile-icon');
+		if (measureMobileIcon)
+		{
+			measureMobileIcon.remove();
+		}
+
+		this.isMeasure = false;
+		canvas.onmousemove = null;
+		canvas.onclick = null;
+	}
+
+	drawMeasure(canvas, originX, originY, originCol, originRow)
+	{
+		let that = this;
+		canvas.onclick = null;
+		document.getElementById('measureMobile-icon').remove();
+		canvas.onmousemove = function(event)
+		{
+			let ctx = canvas.getContext('2d');
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			let canvasMousePos = that.getMouseCanvasPos(canvas, event)
+
+			// get hypoT
+			let posX = canvasMousePos[0];
+			let posY = canvasMousePos[1];
+
+			let col = Math.floor(posX / that.map['cellSize']);
+			let row = Math.floor(posY / that.map['cellSize']);
+
+			let lengthCol = col - originCol;
+			let lengthRow = row - originRow;
+
+			let hypoT = Math.floor(Math.sqrt((lengthCol * lengthCol) + (lengthRow * lengthRow)));
+
+			// get angle
+			let angle = Math.atan2(lengthRow - 0, lengthCol - 0) * 180/Math.PI;
+
+
+			angle = angle < 0 ? angle + 360 : angle;
+			angle += 90;
+			angle = angle >= 360 ? Math.floor(angle - 360): Math.floor(angle);
+
+			ctx.beginPath();
+			ctx.moveTo(originX, originY);
+			ctx.lineTo(posX, posY);
+			ctx.strokeStyle = "blue";
+			ctx.stroke();
+			ctx.closePath();
+
+			ctx.arc(originX, originY, 10, 0, 2 * Math.PI);
+			ctx.fillStyle = "rgba(75, 75, 175, 0.2)";
+			ctx.fill();
+
+			ctx.font = "18px Arial";
+			ctx.fillStyle = "orange";
+			ctx.fillText(angle + "°",  originX + 8, originY - 8); 
+			ctx.fillText(hypoT, posX, posY); 
+		}
+		canvas.onclick = function()
+		{
+			that.closeMeasure(canvas);
+		}
+	}
+
+	beginMeasure(canvas, e)
+	{
+		if (this.isMeasure == false)
+		{
+			let that = this;
+			let measureMobileIcon = document.createElement('img');
+			measureMobileIcon.setAttribute('id', 'measureMobile-icon')
+			measureMobileIcon.setAttribute('src', './assets/img/latte.png')
+			measureMobileIcon.classList.add('measureMobile-icon');
+			document.body.appendChild(measureMobileIcon);
+
+			this.putObjDomOnMouse(measureMobileIcon, e);
+
+			this.isMeasure = true;
+
+			canvas.onmousemove = function(event)
+			{
+				that.putObjDomOnMouse(measureMobileIcon, event);
+			};
+
+			canvas.onclick = function(event)
+			{
+				let canvasMousePos = that.getMouseCanvasPos(canvas, event)
+
+				let originCol = Math.floor(canvasMousePos[0] / that.map['cellSize']);
+				let originRow = Math.floor(canvasMousePos[1] / that.map['cellSize']);
+				let originX = originCol * that.map['cellSize'];
+				let originY = originRow * that.map['cellSize'];
+				that.drawMeasure(canvas, originX, originY, originCol, originRow);
+			};
+		}
+		else
+		{
+			this.closeMeasure(canvas);
+		}
+	}
+
+// INSERT TEXT NAME OBJECT ON CLICK
+
 	insertTextAtCursor(text)
 	{
 	    let sel, range, html;
@@ -623,69 +758,52 @@ class Engine
 	{
 		let that = this;
 
-		let canvasInfos = canvas.getBoundingClientRect();
-		let canvasTop = canvasInfos.top;
-		let canvasLeft = canvasInfos.left;
+		let mouseXY = this.getMouseCanvasPos(canvas, event);
 
 		let mouseObj =
 		{
-			posCol: Math.floor((event.clientX - canvasLeft) / this.map['cellSize']),
-			posRow: Math.floor((event.clientY - canvasTop) / this.map['cellSize']),
+			posCol: Math.floor(mouseXY[0] / this.map['cellSize']),
+			posRow: Math.floor(mouseXY[1] / this.map['cellSize']),
 			cellWidth: 1,
 			cellHeight: 1
 		}
 
 		canvas.style.cursor = "";
-		canvas.onclick = null;
+
+		if (this.isMeasure == false)
+		{
+			canvas.onclick = null;
+		}
 
 		if (this.checkCollisionBetween(mouseObj, this.map['objectList']['player']))
 		{
 			canvas.style.cursor = "pointer";
-			canvas.onclick = function()
+
+			if (this.isMeasure == false)
 			{
-				that.insertTextAtCursor("Player");
+				canvas.onclick = function()
+				{
+					that.insertTextAtCursor("Player");
+					canvas.onclick = null;
+				}
 			}
 		}
 		else if (this.checkCollisionBetween(mouseObj, this.map['objectList']['turtle']))
 		{
 			canvas.style.cursor = "pointer";
-			canvas.onclick = function()
+
+			if (this.isMeasure == false)
 			{
-				that.insertTextAtCursor("Turtle");
+				canvas.onclick = function()
+				{
+					that.insertTextAtCursor("Turtle");
+					canvas.onclick = null;
+				}
 			}
 		}
 	}
 
-	initPaddingCanvas()
-	{
-		let canvasList = document.querySelectorAll('canvas');
-		for (let i = canvasList.length - 1; i >= 0; i--)
-		{
-			let canvas = canvasList[i];
-			canvas.style.marginLeft = this.map['canvasPadding'] + "px";
-			canvas.style.marginTop = this.map['canvasPadding'] + "px";
-		}
-	}
-
-	reset()
-	{
-		let events = false;
-
-		let messageContainer = document.getElementById('message-container');
-		let restartButton = document.getElementById('restart-button');
-
-		messageContainer.classList.add('hidden');
-		restartButton.classList.add('hidden');
-
-		this.codeLinesEngine.resetColorLines();
-
-		let textarea = document.getElementById('code-container');
-		let runButton = document.getElementById('run-button');
-		textarea.style = '';
-		runButton.style = '';
-
-		this.init(events);
-	}
+// INTRO AND OUTRO MODAL BOX
 
 	loadGameLost(lostMessage)
 	{
@@ -719,6 +837,39 @@ class Engine
 
 		messageContent.innerText = this.htmlLang == "en" ? this.map['introEn'] : this.map['introJp'];
 		introButton.classList.remove('hidden');
+	}
+
+// INIT AND RESET
+
+	reset()
+	{
+		let events = false;
+
+		let messageContainer = document.getElementById('message-container');
+		let restartButton = document.getElementById('restart-button');
+
+		messageContainer.classList.add('hidden');
+		restartButton.classList.add('hidden');
+
+		this.codeLinesEngine.resetColorLines();
+
+		let textarea = document.getElementById('code-container');
+		let runButton = document.getElementById('run-button');
+		textarea.style = '';
+		runButton.style = '';
+
+		this.init(events);
+	}
+
+	initPaddingCanvas()
+	{
+		let canvasList = document.querySelectorAll('canvas');
+		for (let i = canvasList.length - 1; i >= 0; i--)
+		{
+			let canvas = canvasList[i];
+			canvas.style.marginLeft = this.map['canvasPadding'] + "px";
+			canvas.style.marginTop = this.map['canvasPadding'] + "px";
+		}
 	}
 
 	preloadImg(backOnInit)
@@ -803,9 +954,11 @@ class Engine
 				let restartButton = document.getElementById('restart-button');
 	  			restartButton.addEventListener('click', () => { this.reset(); }, false);
 
-				let canvas = document.querySelectorAll('canvas');
-				let lastCanvas = canvas[canvas.length - 1];
-	  			lastCanvas.addEventListener('mousemove', this.overObject.bind(this, lastCanvas), false);
+				let uiCanvas = document.getElementById('ui-canvas');
+	  			uiCanvas.addEventListener('mousemove', this.overObject.bind(this, uiCanvas), false);
+
+	  			let measureIcon = document.getElementById('measure-icon');
+	  			measureIcon.addEventListener('click', this.beginMeasure.bind(this, uiCanvas), false);
 
 	  			this.loadGameIntro();
   			}

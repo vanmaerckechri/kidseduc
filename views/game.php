@@ -9,6 +9,8 @@ ob_start();
 			<canvas id="turtle-canvas" class="game-canvas"></canvas>
 			<canvas id="player-canvas" class="game-canvas"></canvas>
 			<canvas id="star-canvas" class="game-canvas"></canvas>
+			<canvas id="ui-canvas" class="game-canvas"></canvas>
+			<img id="measure-icon" class="measure-icon" src="./assets/img/latte.png" alt="measure-icon">
 		</div>
 		<div class="code-board">
 			<div class="code-example">
