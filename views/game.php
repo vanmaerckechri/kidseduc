@@ -15,13 +15,12 @@ ob_start();
 				<p>moveFront(x) - moveBack(x) - rotate(y) - rotateRight(x) - rotateLeft(x)</p>
 				<p>x = loop times; y = angle</p>
 				<p>example:</p>
-				<p>Player.moveFront(5)</p>
-				<p>Turtle.moveBack()</p>
-				<p>Player.rotate(15)</p>
 				<p>Turtle.moveFront(5)</p>
+				<p>Player.moveFront(6)</p>
+				<p>Turtle.moveFront(7)</p>
 				<p>moveFront(5)</p>
-				<p>rotateRight(3)</p>
-				<p>Player.moveBack(3)</p>
+				<p>rotateLeft()</p>
+				<p>Player.moveFront(13)</p>
 			</div>
 			<!--<textarea id="code-container" class="code-container"></textarea>-->
 			<code id="code-container" class="code-container" contenteditable="true" spellcheck="false">

@@ -596,6 +596,65 @@ class Engine
 		}
 	}
 */
+	insertTextAtCursor(text)
+	{
+	    let sel, range, html;
+	    let codeContainer = document.getElementById('code-container');
+	    if (window.getSelection)
+	    {
+	        sel = window.getSelection();
+	        // check if cursor is in code-container
+            let isCodeContainerParent = sel;
+            while (isCodeContainerParent && isCodeContainerParent != codeContainer)
+            {
+            	isCodeContainerParent = isCodeContainerParent.focusNode || isCodeContainerParent.parentNode;
+            }
+            // insert text
+	        if (isCodeContainerParent && sel.getRangeAt && sel.rangeCount)
+	        {
+	            range = sel.getRangeAt(0);
+	            range.deleteContents();
+	            range.insertNode(document.createTextNode(text));
+	        }
+	    }
+	}
+
+	overObject(canvas, event)
+	{
+		let that = this;
+
+		let canvasInfos = canvas.getBoundingClientRect();
+		let canvasTop = canvasInfos.top;
+		let canvasLeft = canvasInfos.left;
+
+		let mouseObj =
+		{
+			posCol: Math.floor((event.clientX - canvasLeft) / this.map['cellSize']),
+			posRow: Math.floor((event.clientY - canvasTop) / this.map['cellSize']),
+			cellWidth: 1,
+			cellHeight: 1
+		}
+
+		canvas.style.cursor = "";
+		canvas.onclick = null;
+
+		if (this.checkCollisionBetween(mouseObj, this.map['objectList']['player']))
+		{
+			canvas.style.cursor = "pointer";
+			canvas.onclick = function()
+			{
+				that.insertTextAtCursor("Player");
+			}
+		}
+		else if (this.checkCollisionBetween(mouseObj, this.map['objectList']['turtle']))
+		{
+			canvas.style.cursor = "pointer";
+			canvas.onclick = function()
+			{
+				that.insertTextAtCursor("Turtle");
+			}
+		}
+	}
 
 	initPaddingCanvas()
 	{
@@ -731,6 +790,8 @@ class Engine
   			// events
   			if (events == true)
   			{
+  				let that = this;
+
 				let runBtn = document.getElementById('run-button');
 				runBtn.addEventListener('click', () => { this.checkCode(); }, false);
 
@@ -741,6 +802,10 @@ class Engine
 
 				let restartButton = document.getElementById('restart-button');
 	  			restartButton.addEventListener('click', () => { this.reset(); }, false);
+
+				let canvas = document.querySelectorAll('canvas');
+				let lastCanvas = canvas[canvas.length - 1];
+	  			lastCanvas.addEventListener('mousemove', this.overObject.bind(this, lastCanvas), false);
 
 	  			this.loadGameIntro();
   			}
