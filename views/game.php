@@ -77,6 +77,7 @@ ob_start();
 ?>
 <script src="./assets/js/entities.js"></script>
 <script src="./assets/js/maps.js"></script>
+<script src="./assets/js/codelines.js"></script>
 <script src="./assets/js/game.js"></script>
 <?php
 $javascriptContent = ob_get_clean();
