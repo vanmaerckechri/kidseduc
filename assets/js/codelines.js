@@ -144,7 +144,7 @@ class CodeLinesEngine
 			}
 			else
 			{
-				error = lang == "en" ? "The name of the object does not exist" : "オブジェクトの名前が存在しません";
+				error = lang == "en" ? "The name of this object or the requested action does not exist!" : "このオブジェクトの名前または要求されたアクションは存在しません";
 			}
 		}
 		return error;
