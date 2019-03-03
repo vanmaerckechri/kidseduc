@@ -2,20 +2,26 @@
 {
 	height: 100%;
 	display: flex;
-	position: relative;
-}
-.game-canvas
-{
-	border: 1px solid green;
-	position: absolute;
-	left: 0;
-	top: 0;
 }
 .game-board
 {
 	flex: 1;
 	min-width: 450px;
 	background-color: $grass-bgColor;
+	position: relative;
+}
+.game-canvas
+{
+	position: absolute;
+	left: 50%;
+	top: 0;
+	transform: translate(-50%);
+}
+.board-canvas
+{
+
+	background-image: url("../img/garden.jpg");
+	background-size: cover;
 }
 .measure-icon
 {
@@ -37,7 +43,7 @@
 }
 .code-board
 {
-	flex: 2;
+	flex: 1;
 	min-width: 450px;
 	display: flex;
 	flex-direction: column;

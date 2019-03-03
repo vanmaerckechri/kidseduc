@@ -130,7 +130,7 @@ class CodeLinesEngine
 			}
 			else
 			{
-				reg += objName + "\\.";
+				reg += "^" + objName + "\\.";
 
 				this.regObjects += objName + "\\.";
 			}
@@ -141,7 +141,7 @@ class CodeLinesEngine
 
 				reg += mapObjects[curObj][i];
 
-				reg = i == length -1 ? reg + ")(\\([0-9]*\\))$" : reg + "|";
+				reg = i == length -1 ? reg + ")(\\(-?[0-9]*\\))$" : reg + "|";
 			}
 			
 			reg = index == length ? reg + "$" : reg + "|";
@@ -170,6 +170,8 @@ class Engine
 		this.animationTempo = null;
 
 		this.sequence = [];
+
+		this.currentLevel = 1;
 
 		this.init();
 	}
@@ -249,6 +251,7 @@ class Engine
 			newAngle = obj.angle + direction;
 		}
 
+/*
 		if (obj.angle == (360 + direction))
 		{
 			newAngle = direction;
@@ -257,7 +260,7 @@ class Engine
 		{
 			newAngle = 360 - direction;
 		}
-
+*/
 		return newAngle;
 	}
 
@@ -269,6 +272,7 @@ class Engine
 		let colsLength = this.map['colsLength'];
 		let cellSize = this.map['cellSize'];
 		
+		/*
 		for (let r = 0, rLength = rowsLength; r < rLength; r++)
 		{
 			let posY = (cellSize * r);
@@ -280,6 +284,7 @@ class Engine
 				this.map['ctx'].stroke();
 			}
 		}
+		*/
 	}
 
 	refreshStarCanvas()
@@ -311,8 +316,8 @@ class Engine
 		this.map['canvas'].height = 0;
 		
 		let canvasSize;
-		let canvasContainerWidth = this.map['canvas'].parentNode.offsetWidth - (this.map['canvasPadding'] * 2);
-		let canvasContainerHeight = this.map['canvas'].parentNode.offsetHeight - (this.map['canvasPadding'] * 2);
+		let canvasContainerWidth = this.map['canvas'].parentNode.offsetWidth;
+		let canvasContainerHeight = this.map['canvas'].parentNode.offsetHeight;
 
 		// adapt to portrait or landscape
 		if (canvasContainerHeight > canvasContainerWidth)
@@ -338,6 +343,15 @@ class Engine
 			this.drawObj(water, false);
 		}
 
+		// draw bushes
+		if(this.map['bushes'])
+		{
+			for (let i = this.map['bushes'].length - 1; i >= 0; i--)
+			{
+				this.drawObj(this.map['bushes'][i], false);
+			}
+		}
+
 		let objectList = this.map['objectList'];
 		for (let obj in objectList)
 		{
@@ -353,11 +367,36 @@ class Engine
 		uiCanvas.width = canvasSize;
 		uiCanvas.height = canvasSize
 	}
-
-	checkCollisionBetween(obj1, obj2, obj1PadHeight = false)
+/*
+	testCol(obj1)
 	{
-		let obj1PadH = obj1PadHeight != false ? obj1PadHeight : 0;
+		let pixelMap = [];
+		let cellSize = this.map['cellSize'];
+		let image = obj1['canvas'];
+		let ctx = obj1['ctx'];
+		for( let y = 0; y < image.width; y++ )
+		{
+			for( let x = 0; x < image.height; x++ )
+			{
+				// Fetch pixel at current position
+				let col = x * cellSize;
+				let row = y * cellSize;
+				let pixel = ctx.getImageData( col, row, 1, 1 );
+				// Check that opacity is above zero
+				if( pixel.data[3] != 0 )
+				{
+					pixelMap.push( { x:x, y:y } );
 
+					ctx.rect(col, row, cellSize, cellSize);
+					ctx.stroke();
+				}
+			}
+		}
+		console.log(pixelMap);
+	}		
+*/
+	checkCollisionBetween(obj1, obj2, obj1PadTop = 0, obj1PadBot = 0, obj1PadLeft = 0, obj1PadRight = 0)
+	{
 		let obj1PosLeft = obj1['posCol'] - (obj1['cellWidth'] / 2);
 		let obj1PosRight = obj1['posCol'] + (obj1['cellWidth'] / 2);
 		let obj1PosTop = obj1['posRow'] - (obj1['cellHeight'] / 2);
@@ -368,7 +407,7 @@ class Engine
 		let obj2PosTop = obj2['posRow'] - (obj2['cellHeight'] / 2);
 		let obj2PosBot = obj2['posRow'] + (obj2['cellHeight'] / 2);
 
-		if (obj2PosLeft <= obj1PosRight && obj2PosRight > obj1PosLeft && obj2PosTop <= obj1PosBot + parseInt(obj1PadH, 10) && obj2PosBot + parseInt(obj1PadH, 10) > obj1PosTop)
+		if (obj2PosLeft <= obj1PosRight + parseInt(obj1PadRight, 10) && obj2PosRight > obj1PosLeft - parseInt(obj1PadLeft, 10) && obj2PosTop <= obj1PosBot + parseInt(obj1PadBot, 10) && obj2PosBot > obj1PosTop - parseInt(obj1PadTop, 10))
 		{
 			return true;
 		}
@@ -378,6 +417,7 @@ class Engine
 
 	checkEdgeCollision(col, row)
 	{
+		// with Edges map
 		if (col > 0 && col < this.map['colsLength'] - 1 && row > 0 && row < this.map['rowsLength'] - 1)
 		{
 			return false;
@@ -392,17 +432,27 @@ class Engine
 		let xSmoothStep = xLength / 10;
 		let YSmoothStep = yLength / 10;
 
+		let animIndex = 0;
+
 		this.sequenceTempo = setInterval(()=>
 		{
 			obj.posCol -= xSmoothStep;
 			obj.posRow -= YSmoothStep;
+
+			// test next frame animation and draw
+			if (obj['idleAnimTempo'] && animIndex % 10 == 1)
+			{
+				obj['imgSrcRow'] = 1;
+				obj['imgSrcCol'] = obj['imgSrcCol'] < obj.animImgLength - 1 ? obj['imgSrcCol'] + 1 : 0;
+			}
+			animIndex += 1;
 			this.drawObj(obj);
 
 			if (objName == "turtle")
 			{
 				let player = this.map['objectList']['player'];
 
-				if (this.checkCollisionBetween(obj, player) == true)
+				if (this.checkCollisionBetween(obj, player, 0, 0, "-1", "-2") == true)
 				{
 					player.posCol -= xSmoothStep;
 					player.posRow -= YSmoothStep;
@@ -451,12 +501,30 @@ class Engine
 			let newPosCol = newPos['posCol'];
 			let newPosRow = newPos['posRow'];
 
+			// block if edge of map
 			if (this.checkEdgeCollision(newPosCol, newPosRow) == true)
 			{
-				callNextSequenceLine();
+				let message = this.htmlLang == "en" ? "In the wall!" : "壁の中に";
+				this.loadGameLost(message);
 				return;
 			}
 
+			// block if Bushes
+			let bushesList = this.map['bushes'];
+			if (bushesList)
+			{
+				for (let i = bushesList.length - 1; i >= 0; i--)
+				{
+					if (this.checkCollisionBetween(bushesList[i], obj, 0, 1) == true)
+					{
+						let message = this.htmlLang == "en" ? "In the wall!" : "壁の中に";
+						this.loadGameLost(message);
+						return;
+					}
+				}
+			}
+
+			// move
 			this.smoothMoveObj(10, objName, obj, newPosCol, newPosRow, ()=>
 			{
 				if (objName == "player")
@@ -464,30 +532,33 @@ class Engine
 					let player = this.map['objectList']['player'];
 					let starsList = this.map['starsList'];
 
+					// with STARS
 					for (let starName in starsList)
 					{
 						if (this.checkCollisionBetween(starsList[starName], player) == true)
 						{
-							console.log("touché")
 							delete starsList[starName];
 							this.refreshStarCanvas();
 							if (Object.keys(starsList).length == 0)
 							{
-								console.log("gagné")
+								this.victoryBox();
+								return;
 							}
 						}
 					}
 
-					if (this.checkCollisionBetween(this.map['water'], player, "-1") == true)
+					// with WATER
+					if (this.map['water'] && this.checkCollisionBetween(this.map['water'], player, "-1", "-1") == true)
 					{
-						if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player) == false)
+						if(!this.map['objectList']['turtle'] || this.checkCollisionBetween(this.map['objectList']['turtle'], player, 0, 0, "-1", "-1") == false)
 						{
 							let message = this.htmlLang == "en" ? "You drowned!" : "溺れた";
 							this.loadGameLost(message);
+							return;
 						}
 					}
 				}
-				callNextSequenceLine();
+				callNextSequenceLine(obj);
 			});
 		}
 		else if (key.indexOf("Rotate") != -1)
@@ -509,7 +580,7 @@ class Engine
 
 	loadAnimation()
 	{
-		this.launchAnimation(this.sequence[0], () =>
+		this.launchAnimation(this.sequence[0], (obj) =>
 		{
 			this.sequence.splice(0, 1);
 			// call next sequence line
@@ -521,6 +592,14 @@ class Engine
 			// no more sequence line
 			else
 			{
+				// idle obj anim
+				if (obj)
+				{
+					obj['imgSrcCol'] = 0;
+					obj['imgSrcRow'] = 0;
+					this.drawObj(obj);
+				}
+
 				this.codeLinesEngine.codeLines.shift();
 				this.codeLinesEngine.currentSequenceLine += 1;
 				// call next code line
@@ -531,10 +610,17 @@ class Engine
 				// no more code line
 				else
 				{
+					if (Object.keys(this.map['starsList']).length)
+					{
+						let message = this.htmlLang == "en" ? "You have not harvested all the stars!" : "あなたはすべての星を収穫していません";
+						this.loadGameLost(message);	
+					}
+					// unlock code container and run button
+					/*
 					let textarea = document.getElementById('code-container');
 					let runButton = document.getElementById('run-button');
 					textarea.style = '';
-					runButton.style = '';
+					runButton.style = '';*/
 				}
 			}
 		})
@@ -667,11 +753,11 @@ class Engine
 			// get angle
 			let angle = Math.atan2(lengthRow - 0, lengthCol - 0) * 180/Math.PI;
 
-
 			angle = angle < 0 ? angle + 360 : angle;
 			angle += 90;
 			angle = angle >= 360 ? Math.floor(angle - 360): Math.floor(angle);
 
+			// draw
 			ctx.beginPath();
 			ctx.moveTo(originX, originY);
 			ctx.lineTo(posX, posY);
@@ -683,8 +769,8 @@ class Engine
 			ctx.fillStyle = "rgba(75, 75, 175, 0.2)";
 			ctx.fill();
 
-			ctx.font = "18px Arial";
-			ctx.fillStyle = "orange";
+			ctx.font = "24px Courier";
+			ctx.fillStyle = "#e1c6cb";
 			ctx.fillText(angle + "°",  originX + 8, originY - 8); 
 			ctx.fillText(hypoT, posX, posY); 
 		}
@@ -790,7 +876,7 @@ class Engine
 				}
 			}
 		}
-		else if (this.checkCollisionBetween(mouseObj, this.map['objectList']['turtle']))
+		else if (this.map['objectList']['turtle'] && this.checkCollisionBetween(mouseObj, this.map['objectList']['turtle']))
 		{
 			canvas.style.cursor = "pointer";
 
@@ -806,6 +892,40 @@ class Engine
 	}
 
 // INTRO AND OUTRO MODAL BOX
+
+	nextMap()
+	{	
+		let nextLevelBtn = document.getElementById('nextLevel-button');
+		let codeContainer = document.getElementById('code-container');
+
+		codeContainer.innerHTML = "";
+		this.currentLevel += 1;
+		nextLevelBtn.classList.add('hidden');
+
+		// true for loadGameIntro
+		let hideContainer = false;
+		this.reset(hideContainer);
+		this.loadGameIntro();
+	}
+	
+	victoryBox()
+	{
+		let message = this.htmlLang == "en" ? "The demo is over. Thank you for participating!" : "デモは終わりました。ご参加いただきありがとうございます";
+
+		let messageContainer = document.getElementById('message-container');
+		let messageContent = document.getElementById('message-content');
+		let nextLevelBtn = document.getElementById('nextLevel-button');
+
+		if(this.currentLevel < this.map['levelMax'])
+		{
+			message = this.htmlLang == "en" ? "Good game!" : "いいゲーム";
+			nextLevelBtn.classList.remove('hidden');
+		}
+
+		messageContent.innerText = message;
+		messageContainer.classList.remove('hidden');
+	}
+
 
 	loadGameLost(lostMessage)
 	{
@@ -843,14 +963,17 @@ class Engine
 
 // INIT AND RESET
 
-	reset()
+	reset(hideContainer = true)
 	{
 		let events = false;
 
 		let messageContainer = document.getElementById('message-container');
 		let restartButton = document.getElementById('restart-button');
 
-		messageContainer.classList.add('hidden');
+		if (hideContainer === true)
+		{	
+			messageContainer.classList.add('hidden');
+		}
 		restartButton.classList.add('hidden');
 
 		this.codeLinesEngine.resetColorLines();
@@ -860,17 +983,62 @@ class Engine
 		textarea.style = '';
 		runButton.style = '';
 
+		if (this.map['objectList']['turtle'])
+		{
+			clearTimeout(this.map['objectList']['turtle']['idleAnimTempo']);
+		}
+
 		this.init(events);
 	}
 
-	initPaddingCanvas()
+	initIdleAnimation(obj)
 	{
-		let canvasList = document.querySelectorAll('canvas');
-		for (let i = canvasList.length - 1; i >= 0; i--)
+		obj.idleAnimTempo = setInterval(()=>
 		{
-			let canvas = canvasList[i];
-			canvas.style.marginLeft = this.map['canvasPadding'] + "px";
-			canvas.style.marginTop = this.map['canvasPadding'] + "px";
+			if (obj.imgSrcRow == 0)
+			{
+				obj['imgSrcCol'] = obj['imgSrcCol'] < obj.animImgLength - 1 ? obj['imgSrcCol'] + 1 : 0;
+				this.drawObj(obj);
+			}
+		}, 600);
+	}
+
+	initBushes()
+	{
+		for (let i = this.map['bushes'].length - 1; i >= 0; i--)
+		{
+			let bush = this.map['bushes'][i];
+			let cellSize = this.map['cellSize'];
+
+			let canvas = document.createElement('canvas');
+			let ctx = canvas.getContext('2d');
+
+			bush['cellWidth'] = bush['cellWidth'] < 2 ? 2 : bush['cellWidth'];
+
+			canvas.width = bush['spriteSizeSrcX'] * bush['cellWidth'];
+			canvas.height = bush['spriteSizeSrcY'];
+
+			let sX = 0;
+			let sY = 0;
+			let dX = 0;
+			let dY = 0;
+
+			for (let j = 0, length = bush['cellWidth']; j < length; j++)
+			{
+				if (j > 0 && j < length - 1)
+				{
+					sX = bush['spriteSizeSrcX'];
+				}
+				if (j == length - 1)
+				{
+					sX = 32;
+				}
+				ctx.drawImage(bush['img'], sX, sY, bush['spriteSizeSrcX'], bush['spriteSizeSrcY'], dX, dY, bush['spriteSizeSrcX'], bush['spriteSizeSrcY']);
+				dX += bush['spriteSizeSrcX'];
+			}
+
+			bush['spriteSizeSrcX'] = canvas.width;
+			bush['img'] = canvas;
 		}
 	}
 
@@ -892,6 +1060,13 @@ class Engine
 			let waterImg = this.map['water'];
 			imgsList.push({waterImg: waterImg});
 			imgsLength += 1;
+		}
+
+		if (this.map['bushes'])
+		{
+			let bushes = this.map['bushes'];
+			imgsList.push(bushes);
+			imgsLength += Object.keys(bushes).length;
 		}
 
 		imgsLength -= 1;
@@ -918,13 +1093,11 @@ class Engine
 
 	init(events = true)
 	{
-		// init map
-		this.map = new Map();
+		this.sequence = [];
+		this.map = new Map(this.currentLevel);
 		// preload images
 		this.preloadImg(() =>
 		{
-			this.initPaddingCanvas();
-
   			// init all objects from this map
 			let objsMethods = {};
 			let objectList = this.map['objectList'];
@@ -935,6 +1108,18 @@ class Engine
 
 	  			// init player
 	  			this[objName] = this.map.objectList[objName];
+			}
+
+			// init idle animations
+			if(this.map['objectList']['turtle'])
+			{
+				this.initIdleAnimation(this.map['objectList']['turtle']);
+			}
+
+			// init brushes
+			if(this.map['bushes'])
+			{
+				this.initBushes();
 			}
 
 			// init code system with methods from objects
@@ -962,8 +1147,12 @@ class Engine
 	  			let measureIcon = document.getElementById('measure-icon');
 	  			measureIcon.addEventListener('click', this.beginMeasure.bind(this, uiCanvas), false);
 
+	  			let nextLevelBtn = document.getElementById('nextLevel-button');
+	  			nextLevelBtn.addEventListener('click', () => { this.nextMap(); }, false);
+
 	  			this.loadGameIntro();
   			}
+
 
   			//display game board
   			this.updateCanvasSize();

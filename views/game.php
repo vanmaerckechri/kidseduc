@@ -5,7 +5,7 @@ ob_start();
 <div id="main">
 	<div class="game-container maxWidth-container">
 		<div class="game-board">
-			<canvas id="board-canvas" class="game-canvas"></canvas>
+			<canvas id="board-canvas" class="board-canvas game-canvas"></canvas>
 			<canvas id="turtle-canvas" class="game-canvas"></canvas>
 			<canvas id="player-canvas" class="game-canvas"></canvas>
 			<canvas id="star-canvas" class="game-canvas"></canvas>
@@ -60,6 +60,12 @@ ob_start();
 					"再起動"
 				?>
 			</button>
+			<button id="nextLevel-button" class="message-button hidden">
+				<?= $pageLang == "en" ?
+					"NEXT" : 
+					"次"
+				?>
+			</button>
 		</div>
 	</div>
 </div>
@@ -69,7 +75,8 @@ $mainContent = ob_get_clean();
 
 ob_start();
 ?>
-<script src="./assets/js/map.js"></script>
+<script src="./assets/js/entities.js"></script>
+<script src="./assets/js/maps.js"></script>
 <script src="./assets/js/game.js"></script>
 <?php
 $javascriptContent = ob_get_clean();

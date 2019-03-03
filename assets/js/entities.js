@@ -60,9 +60,11 @@ class Turtle
 
 		this.img;
 
+		this.idleAnimTempo = null;
+		this.animImgLength = 5;
 		this.imgSrc = './assets/img/turtle.png';
-		this.spriteSizeSrcX = 64;
-		this.spriteSizeSrcY = 64;
+		this.spriteSizeSrcX = 128;
+		this.spriteSizeSrcY = 128;
 		this.imgSrcRow = 0;
 		this.imgSrcCol = 0;
 
@@ -89,7 +91,7 @@ class Water
 		this.img;
 
 		this.imgSrc = './assets/img/water.png';
-		this.spriteSizeSrcX = 336;
+		this.spriteSizeSrcX = 1080;
 		this.spriteSizeSrcY = 80;
 		this.imgSrcRow = 0;
 		this.imgSrcCol = 0;
@@ -102,40 +104,25 @@ class Water
 	}
 }
 
-class Map
+class Bushes
 {
-	constructor()
+	constructor(posRow, posCol, cellWidth)
 	{
-		this.canvasPadding = 10;
-
 		this.canvas = document.getElementById('board-canvas');
 		this.ctx = this.canvas.getContext('2d');
 
-		this.cellSize = 16;
-		this.rowsLength = 21,
-		this.colsLength = 21,
-		this.cellsInfos = [],
+		this.img;
 
-		this.introEn = "use the \"Turtle\" to cross the river...";
-		this.introJp = "川を渡るのに「カメ」を使用しなさい…";
+		this.imgSrc = './assets/img/bushes.png';
+		this.spriteSizeSrcX = 16;
+		this.spriteSizeSrcY = 32;
+		this.imgSrcRow = 0;
+		this.imgSrcCol = 0;
 
-		this.water = new Water(Math.floor(this.rowsLength / 2), Math.floor(this.colsLength / 2));
-		/*this.water['cellHeight'] = this.water['spriteSizeSrcY'] / this.cellSize;
-		this.water['cellWidth'] = this.water['spriteSizeSrcX'] / this.cellSize;*/
-
-		this.objectList =
-		{
-			player: new Player(Math.floor((this.rowsLength / 5) * 4), Math.floor(this.colsLength / 2)),
-			turtle: new Turtle()
-		}
-		this.objectList['turtle']['posRow'] = Math.floor(this.water['posRow']);
-		this.objectList['turtle']['posCol'] = Math.floor(this.colsLength / 5);
-
-		this.starsList = 
-		{
-			star1: new Star(Math.floor(this.rowsLength / 5), Math.floor(this.colsLength / 6)),
-			star2: new Star(Math.floor(this.rowsLength / 5), Math.floor((this.colsLength / 6) * 3)),
-			star3: new Star(Math.floor(this.rowsLength / 5), Math.floor((this.colsLength / 6) * 5))
-		}
+		this.cellHeight = 2;
+		this.cellWidth = cellWidth;
+		this.angle = 0;
+		this.posRow = posRow;
+		this.posCol = posCol;
 	}
 }
