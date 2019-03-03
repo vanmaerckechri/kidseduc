@@ -13,17 +13,6 @@ ob_start();
 			<img id="measure-icon" class="measure-icon" src="./assets/img/latte.png" alt="measure-icon">
 		</div>
 		<div class="code-board">
-			<div class="code-example">
-				<p>moveFront(x) - moveBack(x) - rotate(y) - rotateRight(x) - rotateLeft(x)</p>
-				<p>x = loop times; y = angle</p>
-				<p>example:</p>
-				<p>Turtle.moveFront(5)</p>
-				<p>Player.moveFront(6)</p>
-				<p>Turtle.moveFront(7)</p>
-				<p>moveFront(5)</p>
-				<p>rotateLeft()</p>
-				<p>Player.moveFront(13)</p>
-			</div>
 			<!--<textarea id="code-container" class="code-container"></textarea>-->
 			<code id="code-container" class="code-container" contenteditable="true" spellcheck="false">
 			</code>

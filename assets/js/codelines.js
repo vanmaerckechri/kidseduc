@@ -122,8 +122,6 @@ class CodeLinesEngine
 		{
 			// check if dot exist after the name
 			let regDot = "^(" + codeResult[0] + "\\.)";
-			console.log(regDot)
-			console.log(code.match(regDot))
 			if (!code.match(regDot))
 			{
 				error = lang == "en" ? "Missing a point between the name of the object and the desired action" : "オブジェクトの名前と目的のアクションの間にポイントがない";

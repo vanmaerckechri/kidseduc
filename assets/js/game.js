@@ -152,6 +152,16 @@ class Engine
 		}
 	}
 
+	cleanAllCanvas()
+	{
+		let canvas = document.querySelectorAll('canvas');
+		for (let i = canvas.length - 1; i >= 0; i--)
+		{
+			let ctx = canvas[i].getContext('2d');
+			ctx.clearRect(0, 0, canvas[i].width, canvas[i].height);
+		}
+	}
+
 	updateCanvasSize()
 	{
 		// rest canvas container size
@@ -836,6 +846,8 @@ class Engine
 		{
 			clearTimeout(this.map['objectList']['turtle']['idleAnimTempo']);
 		}
+
+		this.cleanAllCanvas();
 
 		this.init(events);
 	}

@@ -3,7 +3,7 @@ class Map
 	constructor(currentMap)
 	{
 		this.levelMax = 5;
-		if (currentMap == 5)
+		if (currentMap == 1)
 		{
 			this.canvas = document.getElementById('board-canvas');
 			this.ctx = this.canvas.getContext('2d');
@@ -114,7 +114,7 @@ class Map
 				star3: new Star(Math.floor(this.rowsLength / 2), Math.floor((this.colsLength / 6) * 5))
 			}
 		}
-		else if (currentMap == 1)
+		else if (currentMap == 5)
 		{
 			this.canvas = document.getElementById('board-canvas');
 			this.ctx = this.canvas.getContext('2d');
