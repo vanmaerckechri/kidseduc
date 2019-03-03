@@ -946,9 +946,12 @@ class Engine
 	{
 		let messageContainer = document.getElementById('message-container');
 		let introButton = document.getElementById('intro-button');
+		let codeContainer = document.getElementById('code-container');
 
 		messageContainer.classList.add('hidden');
 		introButton.classList.add('hidden');
+
+		codeContainer.focus();
 	}
 
 	loadGameIntro()
