@@ -13,7 +13,7 @@ class Map
 			this.colsLength = 21,
 			this.cellsInfos = [],
 
-			this.introEn = "1.Use the \"moveFront(12)\" command to reach the star... the value in parenthese is the number of steps";
+			this.introEn = "1. Use the \"moveFront(12)\" command to reach the star... the value in parenthese is the number of steps.";
 			this.introJp = "\"moveFront (12)\" コマンドを使用して星に到達します";
 
 			this.shortcutsName = ["move front"];
@@ -39,8 +39,8 @@ class Map
 			this.colsLength = 21,
 			this.cellsInfos = [],
 
-			this.introEn = "2.Use \"moveBack()\" to perform a reverse";
-			this.introJp = "moveBackを使用して逆方向に実行する";
+			this.introEn = "2. Use \"move Back ()\" to go backwards. Do not forget to add the number of steps in parentheses.";
+			this.introJp = "後方に移動するには \"move Back（）\"を使用してください。括弧内にステップ数を追加することを忘れないでください";
 
 			this.shortcutsName = ["move front", "move back"];
 			this.shortcutsCommand = ["moveFront()", "moveBack()"];
@@ -66,7 +66,7 @@ class Map
 			this.colsLength = 21,
 			this.cellsInfos = [],
 
-			this.introEn = "3.Use the \"rotateRight()\" or \"rotateLeft()\" to reach the star... the value in parenthese is the number of turn";
+			this.introEn = "3. Use the \"rotateRight()\" or \"rotateLeft()\" to reach the star... the value in parenthese is the number of turn.";
 			this.introJp = "星に到達するには \"rotateRight(）\"または \"rotateLeft（）\"を使用してください。";
 
 			this.shortcutsName = ["move front", "move back", "turn right", "turn left"];
@@ -93,7 +93,7 @@ class Map
 			this.colsLength = 21,
 			this.cellsInfos = [],
 
-			this.introEn = "4.Use \"rotate()\" with the right angle between parentheses... use the measuring device at the top left to help you!";
+			this.introEn = "4. Use \"rotate()\" with the right angle between parentheses... use the measuring device at the top left to help you!";
 			this.introJp = "括弧の間は直角に「rotate（）」を使用してください。";
 
 			this.shortcutsName = ["move front", "move back", "turn right", "turn left", "rotation"];
@@ -124,7 +124,7 @@ class Map
 			this.colsLength = 21,
 			this.cellsInfos = [],
 
-			this.introEn = "5.Use the turtle to cross the river... You can advance the turtle like this \"Turtle.moveFront(6)\"";
+			this.introEn = "5. Use the turtle to cross the river... You can advance the turtle like this \"Turtle.moveFront(6)\"";
 			this.introJp = "川を渡るために亀を使う...あなたはこのような亀を進めることができます";
 
 			this.shortcutsName = ["move front"];
